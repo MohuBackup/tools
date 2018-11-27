@@ -9,8 +9,21 @@ const jsonFileName = path.join(baseFilePath, "uploads.json")
 const baseURL = "https://via.hypothes.is/https://web.archive.org/web/2im_/www.mohu.club"
 
 
-const failed = new Set()
-const successful = new Set()
+const loadMetaData = (file) => {
+    const filePath = path.join(baseFilePath, file)
+
+    if (fs.existsSync(filePath)) {
+        return JSON.parse(
+            fs.readFileSync(filePath, "utf-8")
+        ) || []
+    } else {
+        return []
+    }
+}
+
+
+const failed = new Set(loadMetaData("uploads_failed.json"))
+const successful = new Set(loadMetaData("uploads_successful.json"))
 
 
 const download = async (f) => {
@@ -35,7 +48,8 @@ const download = async (f) => {
 
         } else {
             failed.add(f)
-            return console.error(f + " " + r.status)
+            if (r.status != 404) console.error(f + " " + r.status)
+            return
         }
     } catch (e) {
         failed.add(f)
@@ -56,11 +70,7 @@ const saveMetaData = (file, metadata) => {
 }
 
 
-(async () => {
-
-    const imgData = JSON.parse(
-        await fs.readFile(jsonFileName, "utf-8")
-    )
+const downloadAll = async (imgData) => {
 
     await Promise.all(
         imgData.map(f => {
@@ -71,8 +81,34 @@ const saveMetaData = (file, metadata) => {
     saveMetaData("uploads_failed.json", failed)
     saveMetaData("uploads_successful.json", successful)
 
-    console.log(successful)
-    console.log(failed)
+    console.log(successful.size + " successful")
+    console.log(failed.size + " failed")
 
-})()
+}
+
+/**
+ * @param {number} n 
+ * @returns {string}
+ */
+const pad2 = (n) => {
+    return String(Math.floor(n)).padStart(2, "0")
+}
+
+// const imgData = JSON.parse(
+//     fs.readFileSync(jsonFileName, "utf-8")
+// )
+
+const imgData = []
+for (let i = 1; i < 3200; i++) {
+    const sizes = ["mid","max"]
+    sizes.forEach((size)=>{
+        imgData.push(
+            `/uploads/avatar/000/00/${pad2(i / 100)}/${pad2(i % 100)}_avatar_${size}.jpg`
+        )
+    })
+}
+downloadAll(imgData)
+
+
+// ["/uploads/avatar/000/00/06/69_avatar_mid.jpg"]
 
