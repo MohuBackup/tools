@@ -3,7 +3,7 @@ const fs = require("fs-extra")
 const path = require("path")
 
 const backupType = "article"
-const baseFileName = `../backups/${backupType}s/html/`
+const baseFileName = `../backups/${backupType}/`
 
 const matomoScript = /<script type="text\/javascript">\s+var _paq = _paq(.|\n|\s)+?<\/script>/g
 const crondScriptDiv = /<div style="display:none;" id="__crond">(.|\n|\s)+?<\/div>/g

@@ -13,7 +13,7 @@ import grequests
 backupType = "article"
 baseUrl = "https://via.hypothes.is/https://web.archive.org/web/2/www.mohu.club/{backupType}/".format(
     backupType=backupType)
-baseFileName = "../backups/{backupType}s/html/{{id}}.html".format(
+baseFileName = "../backups/{backupType}/{{id}}.html".format(
     backupType=backupType)
 jsonFilename = path.join(path.dirname(baseFileName), "resData.json")
 
