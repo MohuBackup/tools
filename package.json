@@ -13,9 +13,10 @@
   "dependencies": {
     "dom-parser": "^0.1.5",
     "fs-extra": "^7.0.1",
-    "http-server": "^0.11.1"
+    "http-server": "^0.11.1",
+    "node-fetch": "^2.3.0"
   },
   "scripts": {
-    "dev": "http-server ../backups/"
+    "dev": "http-server ../backups/ -c-1"
   }
 }

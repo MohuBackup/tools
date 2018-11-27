@@ -48,7 +48,3 @@ backupTypes.forEach(async (backupType) => {
     )
 
 })
-
-
-
-// fs.ensureFileSync("./abc/123/1.txt")
