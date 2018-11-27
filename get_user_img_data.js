@@ -2,15 +2,14 @@
 const fs = require("fs-extra")
 const path = require("path")
 
-const backupType = "article"
-const baseFileName = `../backups/${backupType}/`
+const backupTypes = ["article", "question"]
 const jsonFileName = "../backups/uploads.json"
 
 const imgReg = /\/uploads\/.+?\.(jpg|jpeg|png|gif)/g
 
 let allImgs = new Set()
 
-const process = async (qid) => {
+const process = async (baseFileName, qid) => {
     const filepath = path.normalize(`${baseFileName}/${qid}.html`)
     const html = await fs.readFile(filepath, "utf-8")
 
@@ -18,30 +17,38 @@ const process = async (qid) => {
 
     if (!imgs) return
 
-    console.log(imgs.length)
+    // console.log(imgs.length)
 
     imgs.forEach((img) => {
         allImgs.add(img)
     })
 }
 
+backupTypes.forEach(async (backupType) => {
+    const baseFileName = `../backups/${backupType}/`
 
-(async () => {
     await Promise.all(
         fs.readdirSync(baseFileName)
             .map((f) => path.parse(f).name)
             .filter((id) => Number.isInteger(+id))
             .sort((a, b) => (a | 0) - (b | 0))
             .map((qid) => {
-                return process(qid)
+                return process(baseFileName, qid)
             })
     )
 
     console.log(allImgs.size)
 
-    fs.writeFileSync(jsonFileName, JSON.stringify([...allImgs]))
+    fs.writeFileSync(
+        jsonFileName,
+        JSON.stringify(
+            [...allImgs].sort(),
+            null, 4
+        )
+    )
 
-})()
+})
+
 
 
 // fs.ensureFileSync("./abc/123/1.txt")
