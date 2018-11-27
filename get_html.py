@@ -10,7 +10,7 @@ from os import path
 import gevent
 import grequests
 
-backupType = "question"
+backupType = "article"
 baseUrl = "https://via.hypothes.is/https://web.archive.org/web/2/www.mohu.club/{backupType}/".format(
     backupType=backupType)
 baseFileName = "../backups/{backupType}s/html/{{id}}.html".format(
@@ -90,7 +90,7 @@ def resolveResponse(res):
         f.write(output)
 
 
-for ai in xrange(50):
+for ai in xrange(4):
 
     reqs = set()
 

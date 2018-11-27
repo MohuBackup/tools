@@ -2,7 +2,7 @@
 const fs = require("fs-extra")
 const path = require("path")
 
-const backupType = "question"
+const backupType = "article"
 const baseFileName = `../backups/${backupType}s/html/`
 
 const matomoScript = /<script type="text\/javascript">\s+var _paq = _paq(.|\n|\s)+?<\/script>/g
