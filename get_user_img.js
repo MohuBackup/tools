@@ -4,7 +4,7 @@ const path = require("path")
 const fetch = require("node-fetch")
 
 const baseFilePath = "../backups/"
-const jsonFileName = path.join(baseFilePath, "uploads.json")
+const jsonFileName = path.join(baseFilePath, "avatars.json")
 
 const baseURL = "https://via.hypothes.is/https://web.archive.org/web/2im_/www.mohu.club"
 
@@ -28,7 +28,9 @@ const successful = new Set(loadMetaData("uploads_successful.json"))
 
 const download = async (f) => {
     try {
-        const r = await fetch(baseURL + f)
+        const r = await fetch(baseURL + f, {
+            timeout: 5000
+        })
         if (r.ok) {
             const imgPath = path.resolve(
                 path.join(baseFilePath, f)
@@ -41,6 +43,7 @@ const download = async (f) => {
 
             await new Promise((resolve) => {
                 fileStream.on("close", () => {
+                    failed.delete(f)
                     successful.add(f)
                     resolve()
                 })
@@ -94,19 +97,12 @@ const pad2 = (n) => {
     return String(Math.floor(n)).padStart(2, "0")
 }
 
-// const imgData = JSON.parse(
-//     fs.readFileSync(jsonFileName, "utf-8")
-// )
+const imgData = JSON.parse(
+    fs.readFileSync(jsonFileName, "utf-8")
+).map(x => {
+    return x.original.replace("https://www.mohu.club", "")
+})
 
-const imgData = []
-for (let i = 1; i < 3200; i++) {
-    const sizes = ["mid","max"]
-    sizes.forEach((size)=>{
-        imgData.push(
-            `/uploads/avatar/000/00/${pad2(i / 100)}/${pad2(i % 100)}_avatar_${size}.jpg`
-        )
-    })
-}
 downloadAll(imgData)
 
 
