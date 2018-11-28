@@ -3,12 +3,6 @@ const fs = require("fs-extra")
 const path = require("path")
 const fetch = require("node-fetch")
 
-// 使用梯子，不解释
-const SocksProxyAgent = require("socks-proxy-agent")
-const proxy = "socks://127.0.0.1:1080"
-const agent = new SocksProxyAgent(proxy, true)
-
-
 const baseFilePath = "../archive.is/"
 const baseURL = "https://archive.is/20181108035912/https://www.mohu.club/"
 
@@ -34,7 +28,6 @@ const download = async (f) => {
     try {
         const r = await fetch(baseURL + f, {
             timeout: 10000,
-            // agent
         })
         if (r.ok) {
             const imgPath = path.resolve(
