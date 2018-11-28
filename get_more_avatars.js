@@ -1,17 +1,16 @@
 
 const fs = require("fs-extra")
 const { JSDOM } = require("jsdom")
-const { getAllQidsThen, flat } = require("./util")
+
+const util = require("./util")
+const { getAllQidsThen, flat, dedup } = util
 
 
 const baseFilePath = "../archive.is/article"
 const jsonFilePath = "../archive.is/avatars_from_archive_is.json"
 
 
-/**
- * @typedef {{"user-url": string; "user-name": string; avatar: string;}} AvatarUrlObj
- */
-
+/** @typedef {util.AvatarUrlObj} AvatarUrlObj */
 /**
  * @param {number} qid
  * @returns {AvatarUrlObj[]}
@@ -43,33 +42,6 @@ const getAvatarUrlObjs = async (qid) => {
             avatar: imgElement.src,
         }
     })
-}
-
-/**
- * 数组去重 (不能用Set因为Set无法去重Object)
- * @param {AvatarUrlObj[]} oldAll 
- * @returns {AvatarUrlObj[]}
- */
-const dedup = (oldAll) => {
-    return oldAll.sort((a, b) => {
-        const userA = a["user-url"]
-        const userB = b["user-url"]
-        if (userA < userB) {
-            return -1
-        }
-        if (userA > userB) {
-            return 1
-        }
-        return 0
-    }).reduce((newAll, c) => {
-        const l = newAll.slice(-1)
-        if (l.length > 0) {
-            if (c["user-url"] && l[0]["user-url"] == c["user-url"]) {
-                return newAll
-            }
-        }
-        return newAll.concat(c)
-    }, [])
 }
 
 
