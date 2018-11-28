@@ -23,7 +23,7 @@ const getAvatarUrlObjs = () => {
         const UserNameElements = anchors.filter(y => {
             return y.href == href && y.textContent
         })
-        
+
         return {
             "user-url": href.split("/").pop(),
             "user-name": imgElement.alt || UserNameElements[0] && UserNameElements[0].textContent,
@@ -80,23 +80,23 @@ const save = (content, filename = "result.json") => {
 }
 
 
-let qid = +location.href.split("/").pop()
-let all = []
+const main = (async () => {
+    let qid = +location.href.split("/").pop()
+    let all = []
 
-for (; qid < 9; qid++) {
-    all.push(...getAvatarUrlObjs())
-    location.replace("https://archive.is/20181108120000/https://www.mohu.club/question/" + (qid + 1)) // 下一页
-}
+    for (; qid < 9; qid++) {
+        await domContentLoad()
+        all.push(...getAvatarUrlObjs())
+        location.replace("https://archive.is/20181108120000/https://www.mohu.club/question/" + (qid + 1)) // 下一页
+    }
 
-console.log(all)
+    console.log(all)
 
-const output = dedup(all)
+    const output = dedup(all)
 
-console.log(output)
-console.log(
-    JSON.stringify(output)
-)
+    console.log(output)
+    save(JSON.stringify(output, null, 4))
 
+})
 
-
-
+main()
