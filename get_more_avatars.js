@@ -4,7 +4,7 @@ const { JSDOM } = require("jsdom")
 const { getAllQidsThen } = require("./util")
 
 
-const baseFilePath = "../archive.is/question"
+const baseFilePath = "../archive.is/article"
 const jsonFilePath = "../archive.is/avatars_from_archive_is.json"
 
 
@@ -18,7 +18,7 @@ const jsonFilePath = "../archive.is/avatars_from_archive_is.json"
  */
 const getAvatarUrlObjs = async (qid) => {
     const html = await fs.readFile(`${baseFilePath}/${qid}.html`, "utf-8")
-    const { window: { document }, window: top, window } = new JSDOM(html)
+    const { window: { document }, window: top, window } = new JSDOM(html)  // eslint-disable-line no-unused-vars
 
     const anchors = [...document.querySelectorAll(".body a[href]")].filter(x => {
         return x.href.includes("https://www.mohu.club/people/")
@@ -100,11 +100,6 @@ const main = (async () => {
     const all = await Promise.all(
         getAllQidsThen(baseFilePath, getAvatarUrlObjs)
     )
-    // const all = await Promise.all(
-    //     [1, 2, 3, 4].map(qid => {
-    //         return getAvatarUrlObjs(qid)
-    //     })
-    // )
 
     const output = dedup(
         saved.concat(
