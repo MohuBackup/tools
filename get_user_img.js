@@ -3,10 +3,14 @@ const fs = require("fs-extra")
 const path = require("path")
 const fetch = require("node-fetch")
 
-const baseFilePath = "../backups/"
-const jsonFileName = path.join(baseFilePath, "avatars.json")
+// 使用梯子，不解释
+const SocksProxyAgent = require("socks-proxy-agent")
+const proxy = "socks://127.0.0.1:1080"
+const agent = new SocksProxyAgent(proxy, true)
 
-const baseURL = "https://via.hypothes.is/https://web.archive.org/web/2im_/www.mohu.club"
+
+const baseFilePath = "../archive.is/"
+const baseURL = "https://archive.is/20181108035912/https://www.mohu.club/"
 
 
 const loadMetaData = (file) => {
@@ -29,11 +33,12 @@ const successful = new Set(loadMetaData("uploads_successful.json"))
 const download = async (f) => {
     try {
         const r = await fetch(baseURL + f, {
-            timeout: 5000
+            timeout: 10000,
+            // agent
         })
         if (r.ok) {
             const imgPath = path.resolve(
-                path.join(baseFilePath, f)
+                path.join(baseFilePath, f + ".html")
             )
 
             fs.ensureDirSync(path.parse(imgPath).dir)
@@ -84,7 +89,7 @@ const downloadAll = async (imgData) => {
     saveMetaData("uploads_failed.json", failed)
     saveMetaData("uploads_successful.json", successful)
 
-    console.log(successful.size + " successful")
+    console.log(successful.size + " succeeded")
     console.log(failed.size + " failed")
 
 }
@@ -98,14 +103,10 @@ const pad2 = (n) => {
 }
 
 
-const imgData = JSON.parse(
-    fs.readFileSync(jsonFileName, "utf-8")
-).map(x => {
-    return x.original.replace("https://www.mohu.club", "")
-})
-
-downloadAll(imgData)
+let data = []
+for (let qid = 2800; qid <= 3000; qid++) {
+    data.push(`question/${qid}`)
+}
 
 
-// ["/uploads/avatar/000/00/06/69_avatar_mid.jpg"]
-
+downloadAll(data)
