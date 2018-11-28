@@ -1,12 +1,25 @@
 
+const fs = require("fs-extra")
+const { JSDOM } = require("jsdom")
+const { getAllQidsThen } = require("./util")
+
+
+const baseFilePath = "../archive.is/question"
+const jsonFilePath = "../archive.is/avatars_from_archive_is.json"
+
+
 /**
  * @typedef {{"user-url": string; "user-name": string; avatar: string;}} AvatarUrlObj
  */
 
 /**
+ * @param {number} qid
  * @returns {AvatarUrlObj[]}
  */
-const getAvatarUrlObjs = () => {
+const getAvatarUrlObjs = async (qid) => {
+    const html = await fs.readFile(`${baseFilePath}/${qid}.html`, "utf-8")
+    const { window: { document }, window: top, window } = new JSDOM(html)
+
     const anchors = [...document.querySelectorAll(".body a[href]")].filter(x => {
         return x.href.includes("https://www.mohu.club/people/")
     })
@@ -59,43 +72,49 @@ const dedup = (oldAll) => {
     }, [])
 }
 
-const domContentLoad = async () => {
-    if (document.readyState == "loading") {
-        return new Promise(resolve => {
-            document.addEventListener("DOMContentLoaded", () => resolve(), { once: true })
-        })
-    }
-}
-
-const save = (content, filename = "result.json") => {
-    const saveA = document.createElement("a")
-    saveA.download = filename
-    saveA.href = URL.createObjectURL(
-        new Blob([content])
-    )
-
-    document.body.appendChild(saveA)
-    saveA.click()
-    saveA.remove()
+/**
+ * 扁平化数组  
+ * (深度为1的 `Array.prototype.flat` 的简单实现)
+ * @param {any[][]} array 
+ */
+const flat = (array) => {
+    return array.reduce((a, x) => {
+        return a.concat(x)
+    }, [])
 }
 
 
 const main = (async () => {
-    let qid = +location.href.split("/").pop()
-    let all = []
 
-    for (; qid < 9; qid++) {
-        await domContentLoad()
-        all.push(...getAvatarUrlObjs())
-        location.replace("https://archive.is/20181108120000/https://www.mohu.club/question/" + (qid + 1)) // 下一页
+    /**
+     * 已保存的数据
+     * @type {AvatarUrlObj[]}
+     */
+    let saved
+    try {
+        saved = await fs.readJSON(jsonFilePath) || []
+    } catch (e) {
+        saved = []
     }
 
-    console.log(all)
+    const all = await Promise.all(
+        getAllQidsThen(baseFilePath, getAvatarUrlObjs)
+    )
+    // const all = await Promise.all(
+    //     [1, 2, 3, 4].map(qid => {
+    //         return getAvatarUrlObjs(qid)
+    //     })
+    // )
 
-    const output = dedup(all)
+    const output = dedup(
+        saved.concat(
+            flat(all)
+        )
+    )
 
-    console.log(output)
-    save(JSON.stringify(output, null, 4))
+    console.log(output.length + " items found")
+
+    await fs.writeJSON(jsonFilePath, output, { spaces: 4 })
 
 })
 
