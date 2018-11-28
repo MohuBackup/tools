@@ -10,7 +10,7 @@ const imgReg = /\/uploads\/.+?\.(jpg|jpeg|png|gif)/g
 
 let allImgs = new Set()
 
-const process = async (baseFileName, qid) => {
+const handler = async (baseFileName, qid) => {
     const filepath = path.normalize(`${baseFileName}/${qid}.html`)
     const html = await fs.readFile(filepath, "utf-8")
 
@@ -28,7 +28,7 @@ const process = async (baseFileName, qid) => {
 backupTypes.forEach(async (backupType) => {
     const baseFileName = `../backups/${backupType}/`
 
-    const cb = (qid) => process(baseFileName, qid)
+    const cb = (qid) => handler(baseFileName, qid)
 
     await Promise.all(
         getAllQidsThen(baseFileName, cb)

@@ -13,7 +13,7 @@ const archiveURL0 = /(\/im_\/)?https:\/\/.*?www.mohu.club\//g
 const archiveURL1 = /https:([\w./:]+?(http(s)?))+/g
 
 
-const process = async (qid) => {
+const handler = async (qid) => {
 
     const filepath = path.normalize(`${baseFileName}/${qid}.html`)
 
@@ -29,5 +29,5 @@ const process = async (qid) => {
 
 }
 
-getAllQidsThen(baseFileName, process)
+getAllQidsThen(baseFileName, handler)
 
