@@ -3,6 +3,13 @@ const fs = require("fs-extra")
 const path = require("path")
 const fetch = require("node-fetch")
 
+// 使用梯子，不解释
+// process.env["NODE_TLS_REJECT_UNAUTHORIZED"] = "0"
+const SocksProxyAgent = require("socks-proxy-agent")
+const proxy = "socks://127.0.0.1:1080"
+const agent = new SocksProxyAgent(proxy, true)
+
+
 const baseFilePath = "../archive.is/"
 const baseURL = "https://archive.is/20181108035912/https://www.mohu.club/"
 
@@ -28,6 +35,7 @@ const download = async (f) => {
     try {
         const r = await fetch(baseURL + f, {
             timeout: 10000,
+            agent
         })
         if (r.ok) {
             const imgPath = path.resolve(
@@ -79,9 +87,17 @@ const downloadAll = async (imgData) => {
         })
     )
 
+    let l = []
+    successful.forEach((x) => {
+        if (failed.delete(x)) {
+            l.push(x)
+        }
+    })
+
     saveMetaData("uploads_failed.json", failed)
     saveMetaData("uploads_successful.json", successful)
 
+    console.log(l)  // 之前失败重试后成功的项目
     console.log(successful.size + " succeeded")
     console.log(failed.size + " failed")
 
@@ -97,7 +113,7 @@ const pad2 = (n) => {
 
 
 let data = []
-for (let qid = 2800; qid <= 3000; qid++) {
+for (let qid = 1; qid <= 4500; qid++) {
     data.push(`question/${qid}`)
 }
 
