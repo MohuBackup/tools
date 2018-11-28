@@ -113,8 +113,8 @@ const pad2 = (n) => {
 
 
 let data = []
-for (let qid = 1; qid <= 4500; qid++) {
-    data.push(`question/${qid}`)
+for (let qid = 1; qid <= 500; qid++) {
+    data.push(`article/${qid}`)
 }
 
 
