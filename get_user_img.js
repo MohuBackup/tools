@@ -97,6 +97,7 @@ const pad2 = (n) => {
     return String(Math.floor(n)).padStart(2, "0")
 }
 
+
 const imgData = JSON.parse(
     fs.readFileSync(jsonFileName, "utf-8")
 ).map(x => {

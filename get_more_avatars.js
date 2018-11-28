@@ -59,6 +59,26 @@ const dedup = (oldAll) => {
     }, [])
 }
 
+const domContentLoad = async () => {
+    if (document.readyState == "loading") {
+        return new Promise(resolve => {
+            document.addEventListener("DOMContentLoaded", () => resolve(), { once: true })
+        })
+    }
+}
+
+const save = (content, filename = "result.json") => {
+    const saveA = document.createElement("a")
+    saveA.download = filename
+    saveA.href = URL.createObjectURL(
+        new Blob([content])
+    )
+
+    document.body.appendChild(saveA)
+    saveA.click()
+    saveA.remove()
+}
+
 
 let qid = +location.href.split("/").pop()
 let all = []
