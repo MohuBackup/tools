@@ -41,12 +41,14 @@ const output = all.sort((a, b) => {
         return 1
     }
     return 0
-}).reduce((newAll, c) => {
-    if (newAll.slice(-1)) {
-        if (newAll.slice(-1)[0]["user-url"] == c["user-url"])
-            return
+}).reduce((newAll, c) => {  // 数组去重 (不能用Set因为Set无法去重Object)
+    const l = newAll.slice(-1)
+    if (l.length > 0) {
+        if (c["user-url"] && l[0]["user-url"] == c["user-url"]) {
+            return newAll
+        }
     }
-    newAll.push(c)
+    return newAll.concat(c)
 }, [])
 
 console.log(
