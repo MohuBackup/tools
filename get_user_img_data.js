@@ -1,6 +1,7 @@
 
 const fs = require("fs-extra")
 const path = require("path")
+const { getAllQidsThen } = require("./util")
 
 const backupTypes = ["article", "question"]
 const jsonFileName = "../backups/uploads.json"
@@ -27,14 +28,10 @@ const process = async (baseFileName, qid) => {
 backupTypes.forEach(async (backupType) => {
     const baseFileName = `../backups/${backupType}/`
 
+    const cb = (qid) => process(baseFileName, qid)
+
     await Promise.all(
-        fs.readdirSync(baseFileName)
-            .map((f) => path.parse(f).name)
-            .filter((id) => Number.isInteger(+id))
-            .sort((a, b) => (a | 0) - (b | 0))
-            .map((qid) => {
-                return process(baseFileName, qid)
-            })
+        getAllQidsThen(baseFileName, cb)
     )
 
     console.log(allImgs.size)

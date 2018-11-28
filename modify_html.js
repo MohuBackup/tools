@@ -1,6 +1,7 @@
 
 const fs = require("fs-extra")
 const path = require("path")
+const { getAllQidsThen } = require("./util")
 
 const backupType = "article"
 const baseFileName = `../backups/${backupType}/`
@@ -28,12 +29,5 @@ const process = async (qid) => {
 
 }
 
-fs.readdirSync(baseFileName)
-    .map((f) => path.parse(f).name)
-    .filter((id) => Number.isInteger(+id))
-    .sort((a, b) => (a | 0) - (b | 0))
-    .forEach((qid) => {
-        process(qid)
-    })
-
+getAllQidsThen(baseFileName, process)
 
