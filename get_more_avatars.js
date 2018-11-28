@@ -1,7 +1,7 @@
 
 const fs = require("fs-extra")
 const { JSDOM } = require("jsdom")
-const { getAllQidsThen } = require("./util")
+const { getAllQidsThen, flat } = require("./util")
 
 
 const baseFilePath = "../archive.is/article"
@@ -69,17 +69,6 @@ const dedup = (oldAll) => {
             }
         }
         return newAll.concat(c)
-    }, [])
-}
-
-/**
- * 扁平化数组  
- * (深度为1的 `Array.prototype.flat` 的简单实现)
- * @param {any[][]} array 
- */
-const flat = (array) => {
-    return array.reduce((a, x) => {
-        return a.concat(x)
     }, [])
 }
 
