@@ -77,9 +77,9 @@ const getAnswerersUserObjs = (_document) => {
         const userIMG = x.children[0]
         const avatar = userIMG.src
 
-        const userNameA = [...userNameAs].filter(y => {
+        const userNameA = [...userNameAs].find(y => {
             return y.dataset.id == `${userID}` && y.parentElement.classList.length == 0
-        })[0]
+        })
         if (!userNameA) return
 
         const [userName, userDescription] = userNameA.parentElement.textContent.split(" - ").map(x => x.trim())
@@ -169,7 +169,10 @@ const main = async () => {
                 flat(all)
             )
         )
-    )
+    ).map(x => {
+        x["user-description"] = x["user-description"] || null
+        return x
+    })
 
     console.log(output.length + " items found")
 
