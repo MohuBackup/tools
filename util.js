@@ -31,7 +31,7 @@ const flat = (array) => {
 
 
 /**
- * @typedef {{"user-url": string; "user-name": string; avatar: string;}} AvatarUrlObj
+ * @typedef {{"user-url": string; "user-name": string; avatar?: string;}} AvatarUrlObj
  */
 
 /**
@@ -40,17 +40,30 @@ const flat = (array) => {
  * @returns {AvatarUrlObj[]}
  */
 const dedup = (oldAll) => {
-    return oldAll.sort((a, b) => {
+    return oldAll.filter(x => {  // 过滤掉已注销的用户
+        return x["user-url"]
+    }).sort((a, b) => {  // 按照 Unicode 码位顺序排序
         const userA = a["user-url"]
         const userB = b["user-url"]
         if (userA < userB) {
             return -1
-        }
-        if (userA > userB) {
+        } else if (userA > userB) {
             return 1
+        } else {  // 进一步排序单一用户被抓取到的全部头像图片地址，使排序稳定
+            const avatarA = a.avatar
+            const avatarB = b.avatar
+            if (!avatarA) return 1  // 将不包含头像(avatar属性值为null)的AvatarUrlObj排在该用户所有对应的AvatarUrlObj的最后
+            if (!avatarB) return -1
+    
+            if (avatarA < avatarB) {
+                return -1
+            } else if (avatarA > avatarB) {
+                return 1
+            } else {
+                return 0
+            }
         }
-        return 0
-    }).reduce((newAll, c) => {
+    }).reduce((newAll, c) => {  // 真正的去重过程
         const l = newAll.slice(-1)
         if (l.length > 0) {
             if (c["user-url"] && l[0]["user-url"] == c["user-url"]) {
