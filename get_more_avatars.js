@@ -2,12 +2,12 @@
 const fs = require("fs-extra")
 const { JSDOM } = require("jsdom")
 
-const { getAllQidsThen, flat, dedup } = require("./util")
+const { getAllQidsThen, readArrayFromJSON, flat, dedup } = require("./util")
 
 
-const baseFilePath = "../archive.is/article"
-const jsonFilePath = "../archive.is/avatars_from_archive_is.json"
-const rawDataFilePath = "../archive.is/raw_avatars_data.json"
+const baseFilePath = "../backups/article"
+const jsonFilePath = "../backups/users.json"
+const rawDataFilePath = "../backups/raw_user_obj_data.json"
 
 
 /** @typedef {import("./util").AvatarUrlObj} AvatarUrlObj */
@@ -161,11 +161,11 @@ const main = async () => {
     }
 
     const all = await Promise.all(
-        getAllQidsThen(baseFilePath, getAvatarUrlObjs)
-        // getAllQidsThen(baseFilePath, getAvatarUrlObjsFromArchiveOrg)
+        // getAllQidsThen(baseFilePath, getAvatarUrlObjs)
+        getAllQidsThen(baseFilePath, getUserObjsFromArchiveOrg)
     )
 
-    const rawData = await fs.readJSON(rawDataFilePath)
+    const rawData = await readArrayFromJSON(rawDataFilePath)
     await fs.writeJSON(rawDataFilePath, rawData.concat(all), { spaces: 4 })
 
     const output = dedup(
@@ -180,4 +180,4 @@ const main = async () => {
 
 }
 
-// main()
+main()

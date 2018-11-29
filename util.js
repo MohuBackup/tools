@@ -35,7 +35,7 @@ const flat = (array) => {
  * 判断传入的参数是否是一个数组
  * @param {any} x 
  */
-const isArray = (x) =>{
+const isArray = (x) => {
     return Object.prototype.toString.call(x) == "[object Array]"
 }
 
@@ -105,10 +105,22 @@ const dedup = (oldAll) => {
     }, [])
 }
 
+/**
+ * 按照用户id升序排列由UserObj组成的数组
+ * @param {UserObj[]} userObjs 
+ */
+const sortUserObjArray = (userObjs) => {
+    return userObjs.sort((a, b) => {
+        return a["user-id"] - b["user-id"]
+    })
+}
+
 
 module.exports = {
     getAllQidsThen,
     readArrayFromJSON,
     flat,
-    dedup
+    dedup,
+    isArray,
+    sortUserObjArray,
 }
