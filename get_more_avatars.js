@@ -11,6 +11,8 @@ const rawDataFilePath = "../archive.is/raw_avatars_data.json"
 
 
 /** @typedef {import("./util").AvatarUrlObj} AvatarUrlObj */
+/** @typedef {import("./util").UserObj} UserObj */
+
 /**
  * @param {number} qid
  * @returns {Promise<AvatarUrlObj[]>}
@@ -46,6 +48,44 @@ const getAvatarUrlObjs = async (qid) => {
             avatar: imgElement.src.includes("https://") ? imgElement.src : null,
         }
     })
+}
+
+/**
+ * @param {number} qid 
+ * @returns {Promise<UserObj[]>}
+ */
+const getUserObjsFromArchiveOrg = async (qid) => {
+    const html = await fs.readFile(`${baseFilePath}/${qid}.html`, "utf-8")
+    const { window: { document } } = new JSDOM(html)
+
+    /** @type {NodeListOf<HTMLAnchorElement>} */
+    const imgAs = document.querySelectorAll("a.aw-user-img")
+    /** @type {NodeListOf<HTMLAnchorElement>} */
+    const userNameAs = document.querySelectorAll("a.aw-user-name[data-id]")
+
+    return [...imgAs].map((x) => {  // 获取回答问题的用户信息
+        const userID = +x.dataset.id
+        const userURL = x.href.split("/").pop()
+
+        /** @type {HTMLImageElement} */
+        const userIMG = x.children[0]
+        const avatar = userIMG.src
+
+        const userNameA = [...userNameAs].filter(y => {
+            return y.dataset.id == `${userID}` && y.parentElement.classList.length == 0
+        })[0]
+        if (!userNameA) return
+
+        const [userName, userDescription] = userNameA.parentElement.textContent.split(" - ").map(x => x.trim())
+
+        return {
+            "user-id": userID,
+            "user-url": userURL,
+            "user-name": userName,
+            "user-description": userDescription || null,
+            avatar: !avatar.includes("/static/common/avatar-mid-img.png") ? avatar : null
+        }
+    }).filter(x => !!x)
 }
 
 const resolveRawData = async () => {
