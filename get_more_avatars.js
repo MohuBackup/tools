@@ -5,7 +5,7 @@ const { JSDOM } = require("jsdom")
 const { getAllQidsThen, readArrayFromJSON, flat, dedup, sortUserObjArray } = require("./util")
 
 
-const baseFilePath = "../backups/article"
+const baseFilePath = "../backups/question"
 const jsonFilePath = "../backups/users.json"
 const rawDataFilePath = "../backups/raw_user_obj_data.json"
 
@@ -153,7 +153,7 @@ const main = async () => {
      * 已保存的数据
      * @type {UserObj[]}
      */
-    const saved = await readArrayFromJSON(rawDataFilePath)
+    const saved = await readArrayFromJSON(jsonFilePath)
 
     const all = await Promise.all(
         // getAllQidsThen(baseFilePath, getAvatarUrlObjs)
@@ -161,7 +161,6 @@ const main = async () => {
     )
 
     const rawData = await readArrayFromJSON(rawDataFilePath)
-    console.log(rawData)
     await fs.writeJSON(rawDataFilePath, rawData.concat(all), { spaces: 4 })
 
     const output = sortUserObjArray(
