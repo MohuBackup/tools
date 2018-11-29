@@ -8,6 +8,7 @@ const { getAllQidsThen, flat, dedup } = util
 
 const baseFilePath = "../archive.is/article"
 const jsonFilePath = "../archive.is/avatars_from_archive_is.json"
+const rawDataFilePath = "../archive.is/raw_avatars_data.json"
 
 
 /** @typedef {util.AvatarUrlObj} AvatarUrlObj */
@@ -25,7 +26,7 @@ const getAvatarUrlObjs = async (qid) => {
 
     return anchors.filter(x => {
         const imgElement = x.children[1]
-        return imgElement.tagName == "IMG" && imgElement.src.includes("https://")
+        return imgElement.tagName == "IMG"
 
     }).map(x => {
         const imgElement = x.children[1]
@@ -39,13 +40,23 @@ const getAvatarUrlObjs = async (qid) => {
         return {
             "user-url": href.split("/").pop(),
             "user-name": imgElement.alt || UserNameElements[0] && UserNameElements[0].textContent,
-            avatar: imgElement.src,
+            avatar: imgElement.src.includes("https://") ? imgElement.src : null,
         }
     })
 }
 
+const resolveRawData = async () => {
+    const rawData = await fs.readJSON(rawDataFilePath)
 
-const main = (async () => {
+    const output = dedup(
+        flat(rawData)
+    )
+
+    fs.writeJSON(jsonFilePath, output, { spaces: 4 })
+}
+
+
+const main = async () => {
 
     /**
      * 已保存的数据
@@ -60,7 +71,11 @@ const main = (async () => {
 
     const all = await Promise.all(
         getAllQidsThen(baseFilePath, getAvatarUrlObjs)
+        // getAllQidsThen(baseFilePath, getAvatarUrlObjsFromArchiveOrg)
     )
+
+    const rawData = await fs.readJSON(rawDataFilePath)
+    await fs.writeJSON(rawDataFilePath, rawData.concat(all), { spaces: 4 })
 
     const output = dedup(
         saved.concat(
@@ -72,6 +87,6 @@ const main = (async () => {
 
     await fs.writeJSON(jsonFilePath, output, { spaces: 4 })
 
-})
+}
 
 main()
