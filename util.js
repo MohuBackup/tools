@@ -1,5 +1,5 @@
 // @ts-check
-const fs = require("fs")
+const fs = require("fs-extra")
 const path = require("path")
 
 /**
@@ -29,6 +29,31 @@ const flat = (array) => {
     return array.reduce((a, x) => {
         return a.concat(x)
     }, [])
+}
+
+/**
+ * 判断传入的参数是否是一个数组
+ * @param {any} x 
+ */
+const isArray = (x) =>{
+    return Object.prototype.toString.call(x) == "[object Array]"
+}
+
+/**
+ * 不throw错误地从一个json文件中读取数组
+ * @param {string} file 
+ * @param {fs.ReadOptions} [options] 
+ * @returns {Promise<any[]>}
+ */
+const readArrayFromJSON = async (file, options) => {
+    let data
+    try {
+        data = await fs.readJSON(file, options)
+    } catch (e) {
+        console.error(e)
+        data = []
+    }
+    return isArray(data) ? data : []
 }
 
 
@@ -83,6 +108,7 @@ const dedup = (oldAll) => {
 
 module.exports = {
     getAllQidsThen,
+    readArrayFromJSON,
     flat,
     dedup
 }
