@@ -59,16 +59,17 @@ const readArrayFromJSON = async (file, options) => {
 
 /**
  * @typedef {{"user-url": string; "user-name": string; avatar?: string;}} AvatarUrlObj
+*/
+
+/**
+ * @typedef {{"user-id": number; "user-url": string; "user-name": string; "user-description"?: string; avatar?: string;}} UserObj extends AvatarUrlObj 
  */
 
 /**
- * @typedef {{"user-id": number; "user-url": string; "user-name": string; "user-description"?: string; avatar?: string;}} UserObj
- */
-
-/**
- * AvatarUrlObj数组去重 (不能用Set因为Set无法去重Object)
- * @param {AvatarUrlObj[]} oldAll 
- * @returns {AvatarUrlObj[]}
+ * AvatarUrlObj或UserObj数组去重 (不能用Set因为Set无法去重Object)
+ * @template {AvatarUrlObj} T
+ * @param {T[]} oldAll 
+ * @returns {T[]}
  */
 const dedup = (oldAll) => {
     return oldAll.filter(x => {  // 过滤掉已注销的用户

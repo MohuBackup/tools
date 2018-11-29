@@ -2,7 +2,7 @@
 const fs = require("fs-extra")
 const { JSDOM } = require("jsdom")
 
-const { getAllQidsThen, readArrayFromJSON, flat, dedup } = require("./util")
+const { getAllQidsThen, readArrayFromJSON, flat, dedup, sortUserObjArray } = require("./util")
 
 
 const baseFilePath = "../backups/article"
@@ -151,14 +151,9 @@ const main = async () => {
 
     /**
      * 已保存的数据
-     * @type {AvatarUrlObj[]}
+     * @type {UserObj[]}
      */
-    let saved
-    try {
-        saved = await fs.readJSON(jsonFilePath) || []
-    } catch (e) {
-        saved = []
-    }
+    const saved = await readArrayFromJSON(rawDataFilePath)
 
     const all = await Promise.all(
         // getAllQidsThen(baseFilePath, getAvatarUrlObjs)
@@ -166,11 +161,14 @@ const main = async () => {
     )
 
     const rawData = await readArrayFromJSON(rawDataFilePath)
+    console.log(rawData)
     await fs.writeJSON(rawDataFilePath, rawData.concat(all), { spaces: 4 })
 
-    const output = dedup(
-        saved.concat(
-            flat(all)
+    const output = sortUserObjArray(
+        dedup(
+            saved.concat(
+                flat(all)
+            )
         )
     )
 
