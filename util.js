@@ -1,4 +1,4 @@
-
+// @ts-check
 const fs = require("fs")
 const path = require("path")
 
@@ -35,6 +35,10 @@ const flat = (array) => {
  */
 
 /**
+ * @typedef {{"user-id": number; "user-url": string; "user-name": string; "user-description"?: string; avatar?: string;}} UserObj
+ */
+
+/**
  * AvatarUrlObj数组去重 (不能用Set因为Set无法去重Object)
  * @param {AvatarUrlObj[]} oldAll 
  * @returns {AvatarUrlObj[]}
@@ -54,7 +58,7 @@ const dedup = (oldAll) => {
             const avatarB = b.avatar
             if (!avatarA) return 1  // 将不包含头像(avatar属性值为null)的AvatarUrlObj排在该用户所有对应的AvatarUrlObj的最后
             if (!avatarB) return -1
-    
+
             if (avatarA < avatarB) {
                 return -1
             } else if (avatarA > avatarB) {

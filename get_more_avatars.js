@@ -1,9 +1,8 @@
-
+// @ts-check
 const fs = require("fs-extra")
 const { JSDOM } = require("jsdom")
 
-const util = require("./util")
-const { getAllQidsThen, flat, dedup } = util
+const { getAllQidsThen, flat, dedup } = require("./util")
 
 
 const baseFilePath = "../archive.is/article"
@@ -11,16 +10,19 @@ const jsonFilePath = "../archive.is/avatars_from_archive_is.json"
 const rawDataFilePath = "../archive.is/raw_avatars_data.json"
 
 
-/** @typedef {util.AvatarUrlObj} AvatarUrlObj */
+/** @typedef {import("./util").AvatarUrlObj} AvatarUrlObj */
 /**
  * @param {number} qid
- * @returns {AvatarUrlObj[]}
+ * @returns {Promise<AvatarUrlObj[]>}
  */
 const getAvatarUrlObjs = async (qid) => {
     const html = await fs.readFile(`${baseFilePath}/${qid}.html`, "utf-8")
     const { window: { document }, window: top, window } = new JSDOM(html)  // eslint-disable-line no-unused-vars
 
-    const anchors = [...document.querySelectorAll(".body a[href]")].filter(x => {
+    /** @type {NodeListOf<HTMLAnchorElement>} */
+    const _anchors = document.querySelectorAll(".body a[href]")
+
+    const anchors = [..._anchors].filter(x => {
         return x.href.includes("https://www.mohu.club/people/")
     })
 
@@ -29,6 +31,7 @@ const getAvatarUrlObjs = async (qid) => {
         return imgElement.tagName == "IMG"
 
     }).map(x => {
+        /** @type {HTMLImageElement} */
         const imgElement = x.children[1]
 
         const href = x.href
@@ -89,4 +92,4 @@ const main = async () => {
 
 }
 
-main()
+// main()
