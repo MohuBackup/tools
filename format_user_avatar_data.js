@@ -1,4 +1,8 @@
 // @ts-check
+/**
+ * 格式化用户头像图片地址数据，方便后续使用
+ */
+
 const fs = require("fs-extra")
 
 /** @typedef {import("./util").UserObj} UserObj */

@@ -82,11 +82,18 @@ const saveMetaData = (file, metadata) => {
 }
 
 
+/**
+ * @typedef {[string, string]} imgDataItem [下载地址, 保存路径]
+ */
+
+/**
+ * @param {imgDataItem[]} imgData 
+ */
 const downloadAll = async (imgData) => {
 
     await Promise.all(
-        imgData.map(f => {
-            return download(f)
+        imgData.map((x) => {
+            return download(...x)
         })
     )
 
@@ -106,17 +113,21 @@ const downloadAll = async (imgData) => {
 
 }
 
-
-/** @typedef {import("./format_user_avatar_data").FormattedUserAvatarData} FormattedUserAvatarData */
+/**
+ * @typedef {import("./format_user_avatar_data").FormattedUserAvatarData} FormattedUserAvatarData [ 用户id, 头像图片下载地址 ]
+ */
 
 /** @type {FormattedUserAvatarData[]} */
 const avatars = fs.readJSONSync(avatarsJsonFilePath)
 
-const data = avatars.map(([userID, downloadURL]) => {
-    return [
-        downloadURL,
-        `/uploads/avatar/000/00/${pad2(userID / 100)}/${pad2(userID % 100)}_avatar_mid.jpg`
-    ]
-})
+const data = avatars.map(
+    /** @returns {imgDataItem} */
+    ([userID, downloadURL]) => {
+        return [
+            downloadURL,
+            `/uploads/avatar/000/00/${pad2(userID / 100)}/${pad2(userID % 100)}_avatar_mid.jpg`
+        ]
+    }
+)
 
 downloadAll(data)
