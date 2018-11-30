@@ -1,17 +1,13 @@
-
+// @ts-check
 const fs = require("fs-extra")
 const path = require("path")
-const fetch = require("node-fetch")
+const { pad2, fetch, getProxyAgent } = require("./util")
 
-// 使用梯子，不解释
-// process.env["NODE_TLS_REJECT_UNAUTHORIZED"] = "0"
-const SocksProxyAgent = require("socks-proxy-agent")
-const proxy = "socks://127.0.0.1:1080"
-const agent = new SocksProxyAgent(proxy, true)
+const agent = getProxyAgent()
 
-
-const baseFilePath = "../archive.is/"
-const baseURL = "https://archive.is/20181107205912/https://www.mohu.club/"
+const baseFilePath = "../backups/"
+const avatarsJsonFilePath = "../backups/avatars.json"
+const baseURL = ""
 
 
 const loadMetaData = (file) => {
@@ -30,16 +26,19 @@ const loadMetaData = (file) => {
 const failed = new Set(loadMetaData("uploads_failed.json"))
 const successful = new Set(loadMetaData("uploads_successful.json"))
 
-
-const download = async (f) => {
+/**
+ * @param {string} f 
+ * @param {string=} saveTo 
+ */
+const download = async (f, saveTo = f) => {
     try {
         const r = await fetch(baseURL + f, {
             timeout: 10000,
-            agent
+            // agent
         })
         if (r.ok) {
             const imgPath = path.resolve(
-                path.join(baseFilePath, f + ".html")
+                path.join(baseFilePath, saveTo)
             )
 
             fs.ensureDirSync(path.parse(imgPath).dir)
@@ -68,6 +67,10 @@ const download = async (f) => {
 }
 
 
+/**
+ * @param {string} file 
+ * @param {Iterable} metadata 
+ */
 const saveMetaData = (file, metadata) => {
     return fs.writeFile(
         path.join(baseFilePath, file),
@@ -103,19 +106,17 @@ const downloadAll = async (imgData) => {
 
 }
 
-/**
- * @param {number} n 
- * @returns {string}
- */
-const pad2 = (n) => {
-    return String(Math.floor(n)).padStart(2, "0")
-}
 
+/** @typedef {import("./format_user_avatar_data").FormattedUserAvatarData} FormattedUserAvatarData */
 
-let data = []
-for (let qid = 1; qid <= 500; qid++) {
-    data.push(`article/${qid}`)
-}
+/** @type {FormattedUserAvatarData[]} */
+const avatars = fs.readJSONSync(avatarsJsonFilePath)
 
+const data = avatars.map(([userID, downloadURL]) => {
+    return [
+        downloadURL,
+        `/uploads/avatar/000/00/${pad2(userID / 100)}/${pad2(userID % 100)}_avatar_mid.jpg`
+    ]
+})
 
 downloadAll(data)

@@ -40,6 +40,14 @@ const isArray = (x) => {
 }
 
 /**
+ * @param {number} n 
+ * @returns {string}
+ */
+const pad2 = (n) => {
+    return String(Math.floor(n)).padStart(2, "0")
+}
+
+/**
  * 不throw错误地从一个json文件中读取数组
  * @param {string} file 
  * @param {fs.ReadOptions} [options] 
@@ -54,6 +62,38 @@ const readArrayFromJSON = async (file, options) => {
         data = []
     }
     return isArray(data) ? data : []
+}
+
+/** 
+ * 导入 `node-fetch`  
+ * 直接定义类型为import("node-fetch")似乎会有问题
+ * @typedef {import("node-fetch").Request} Request
+ * @typedef {import("node-fetch").RequestInit} RequestInit
+ * @typedef {import("node-fetch").Response} Response
+ * @type {
+        (
+            url: string | Request,
+            init?: RequestInit
+        ) 
+         => Promise<Response> 
+    }
+ */
+const fetch = require("node-fetch")
+
+/**
+ * 使用梯子，不解释
+ * @return 一个 `https.Agent` 实例
+ */
+const getProxyAgent = () => {
+    const SocksProxyAgent = require("socks-proxy-agent")
+    const proxy = "socks://127.0.0.1:1080"
+
+    /** @type {import("https").Agent} */
+    const agent = new SocksProxyAgent(proxy, true)
+
+    // agent.options.rejectUnauthorized = false
+
+    return agent
 }
 
 
@@ -120,8 +160,11 @@ const sortUserObjArray = (userObjs) => {
 module.exports = {
     getAllQidsThen,
     readArrayFromJSON,
+    fetch,
     flat,
+    pad2,
     dedup,
     isArray,
+    getProxyAgent,
     sortUserObjArray,
 }
