@@ -49,23 +49,24 @@ backupTypes.forEach(async (backupType) => {
 
     allImgs.push(...flat(imgs))
 
-    const output = allImgs.sort((a, b) => {
-        if (a.src < b.src) {
-            return -1
-        } else if (a.src > b.src) {
-            return 1
-        } else {
-            return 0
-        }
-    }).filter((x) => {  // 去除null
-        return !!x
-    }).map((x) => {  // 在膜乎上的图片地址只保留pathname (类似于window.location.pathname)
-        x.src = x.src.replace(/^https:\/\/(www\.)?mohu(1|2)?\.(tk|ml|club|tw)/, "")
-        return x
-    }).filter((x) => {  // 去除 非用户上传的图片 和 不在膜乎网站上的图片(外链图片)
-        const src = x.src
-        return !src.startsWith("/ueditor/") && !src.startsWith("/static/") && !src.startsWith("http")
-    })
+    const output = allImgs
+        .filter((x) => {  // 去除null
+            return !!x
+        }).map((x) => {  // 在膜乎上的图片地址只保留pathname (类似于window.location.pathname)
+            x.src = x.src.replace(/^https:\/\/(www\.)?mohu(1|2)?\.(tk|ml|club|tw)/, "")
+            return x
+        }).filter((x) => {  // 去除 非用户上传的图片 和 不在膜乎网站上的图片(外链图片)
+            const src = x.src
+            return !src.startsWith("/ueditor/") && !src.startsWith("/static/") && !src.startsWith("http")
+        }).sort((a, b) => {  // 排序
+            if (a.src < b.src) {
+                return -1
+            } else if (a.src > b.src) {
+                return 1
+            } else {
+                return 0
+            }
+        })
 
     await fs.writeJSON(jsonFilePath, output, { spaces: 4 })
 
