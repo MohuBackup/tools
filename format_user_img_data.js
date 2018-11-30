@@ -6,7 +6,7 @@ const fs = require("fs-extra")
 
 const inputFilePath0 = "../backups/uploads.json"
 const inputFilePath1 = "../archive.is/uploads.json"
-const outputFilePath = inputFilePath0
+const outputFilePath = "../backups/uploads_formatted.json"
 
 /** @type {UserUploadsItem[]} */
 const input0 = fs.readJSONSync(inputFilePath0)
@@ -14,18 +14,24 @@ const input0 = fs.readJSONSync(inputFilePath0)
 /** @type {UserUploadsItem[]} */
 const input1 = fs.readJSONSync(inputFilePath1)
 
-const lost = input1.map((x) => {
-    const i = input0.findIndex((y) => {
-        return y.alt == x.alt && y.title == x.title
-    })
+const formatted = input1.map(
+    /** @returns {imgDataItem} */
+    (x) => {
+        const i = input0.findIndex((y) => {
+            return y.alt == x.alt && y.title == x.title
+        })
 
-    if (i == -1) return x
+        if (i == -1) return
 
-    input0[i].downloadURL = x.src
+        return [
+            x.src,
+            input0[i].src
+        ]
 
-})
+    }
+).filter(x => !!x)
 
 
-fs.writeJSONSync(outputFilePath, input0, { spaces: 4 })
-console.log(lost)
+fs.writeJSONSync(outputFilePath, formatted, { spaces: 4 })
+console.log(formatted.length)
 
