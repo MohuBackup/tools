@@ -6,7 +6,7 @@ const { pad2, fetch, getProxyAgent } = require("./util")
 const agent = getProxyAgent()
 
 const baseFilePath = "../backups/"
-const avatarsJsonFilePath = "../backups/avatars.json"
+const jsonFilePath = "../backups/uploads_formatted.json"
 const baseURL = ""
 
 
@@ -117,17 +117,7 @@ const downloadAll = async (imgData) => {
  * @typedef {import("./format_user_avatar_data").FormattedUserAvatarData} FormattedUserAvatarData [ 用户id, 头像图片下载地址 ]
  */
 
-/** @type {FormattedUserAvatarData[]} */
-const avatars = fs.readJSONSync(avatarsJsonFilePath)
-
-const data = avatars.map(
-    /** @returns {imgDataItem} */
-    ([userID, downloadURL]) => {
-        return [
-            downloadURL,
-            `/uploads/avatar/000/00/${pad2(userID / 100)}/${pad2(userID % 100)}_avatar_mid.jpg`
-        ]
-    }
-)
+/** @type {imgDataItem[]} */
+const data = fs.readJSONSync(jsonFilePath)
 
 downloadAll(data)
