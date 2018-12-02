@@ -27,6 +27,24 @@ const getTagsData = (document) => {
 }
 
 /**
+ * @param {Element} metaDiv 
+ */
+const getMetaData = (metaDiv) => {
+    /** @type {HTMLAnchorElement} */
+    const commentA = metaDiv.querySelector("a.aw-add-comment")
+    const comments = +commentA.dataset.commentCount
+
+    const dateE = metaDiv.firstElementChild
+    const date = new Date(dateE.textContent)
+
+    return {
+        comments,
+        publishTime: date,
+        modifyTime: date,
+    }
+}
+
+/**
  * @param {Document} document 
  * @returns {import("./typedef").QuestionDetail}
  */
@@ -49,22 +67,12 @@ const getQuestionDetail = (document) => {
 
     const metaE = detailE.querySelector(".meta")
 
-    const dateE = metaE.firstElementChild
-    const date = new Date(dateE.textContent)
-
-    /** @type {HTMLAnchorElement} */
-    const commentE = metaE.querySelector("a.aw-add-comment")
-    const comments = +commentE.dataset.commentCount
-
-
     return {
         title,
         body,
         author: authorUserId,
-        publishTime: date,
-        modifyTime: date,
-        comments,
-        link
+        link,
+        ...getMetaData(metaE)
     }
 }
 
@@ -82,7 +90,10 @@ const getAnswerDetail = (answerDiv) => {
     const agreeBy = [...agreeByUsers].map(
         /** @param {HTMLAnchorElement} x */
         (x) => {
-            return +x.dataset.id
+            return {
+                "user-id": +x.dataset.id,
+                "user-name": x.text
+            }
         }
     )
 
@@ -91,29 +102,63 @@ const getAnswerDetail = (answerDiv) => {
     const bodyDiv = answerDiv.querySelector(".mod-body > .markitup-box")
     const body = bodyDiv.innerHTML.trim()
 
-    
     const metaDiv = answerDiv.querySelector(".mod-footer > .meta")
-    
-    /** @type {HTMLAnchorElement} */
-    const commentA = metaDiv.querySelector("a.aw-add-comment")
-    const comments = +commentA.dataset.commentCount
 
-    const dateE = metaDiv.firstElementChild
-    const date = new Date(dateE.textContent)
-
+    return {
+        author,
+        body,
+        "agree-by": agreeBy,
+        "using-mobile-phone": usingMobilePhone,
+        ...getMetaData(metaDiv)
+    }
 }
 
 /**
-* @param {Document} document 
-* @returns {AnswerDetail[]}
-*/
+ * @param {Document} document 
+ * @returns {AnswerDetail[]}
+ */
 const getAnswers = (document) => {
     /** @type {NodeListOf<HTMLDivElement>} */
     const answerDivs = document.querySelectorAll(".aw-feed-list .aw-item")
 
     return [...answerDivs].map(x => {
-        getAnswerDetail(x)
+        return getAnswerDetail(x)
     })
+}
+
+/**
+ * @param {Document} document  
+ * @returns {(import("./typedef").QuestionSimplified)[]}
+ */
+const getRelatedQuestions = (document) => {
+    /** @type {NodeListOf<HTMLAnchorElement>} */
+    const qs = document.querySelectorAll(".aw-side-bar li > a")
+
+    return [...qs].map(x => {
+        return {
+            title: x.text,
+            id: +x.href.split("/").pop()
+        }
+    })
+}
+
+/**
+ * @param {Document} document  
+ * @returns {import("./typedef").QuestionStatus}
+ */
+const getQuestionStatus = (document) => {
+    /** @type {NodeListOf<HTMLSpanElement>} */
+    const statusSpans = document.querySelectorAll(".aw-side-bar li > span")
+
+    const [t, views, concerns] = [...statusSpans].map(x => {
+        return x.textContent.trim()
+    })
+
+    return {
+        "last-active-time": new Date(t),
+        views: +views,
+        concerns: +concerns
+    }
 }
 
 
@@ -123,13 +168,14 @@ const getAnswers = (document) => {
  * @returns {Question}
  */
 const getQuestionData = (qid, document) => {
-    console.log(getQuestionDetail(document))
     return {
         type: "question",
         id: qid,
         tags: getTagsData(document),
         detail: getQuestionDetail(document),
         answers: getAnswers(document),
+        relatedQuestions: getRelatedQuestions(document),
+        questionStatus: getQuestionStatus(document)
     }
 }
 
@@ -142,7 +188,7 @@ const handler = async (qid) => {
 
     const data = getQuestionData(qid, document)
 
-    // fs.writeJSON(`${outputPath}/${qid}.json`, data, { spaces: 4 })
+    fs.writeJSON(`${outputPath}/${qid}.json`, data, { spaces: 4 })
 }
 
-handler(1883)
+getAllQidsThen(baseFilePath,handler)

@@ -71,7 +71,7 @@ export interface AnswerDetail extends CreationBase {
 
 type QuestionId = number
 
-interface QuestionStatus {
+export interface QuestionStatus {
     "last-active-time": Time, // 最后活跃时间
     views?: number,
     concerns?: Users // 关注者
@@ -83,13 +83,18 @@ export interface QuestionDetail extends CreationBase {
     comments: Comments,
 }
 
+export interface QuestionSimplified {
+    title: string,
+    id: QuestionId
+}
+
 export interface Question {
     type: "question",  // 固定值
     id: QuestionId,
     tags: TagId[] | Tag[],
     detail: QuestionDetail,
     answers: AnswerDetail[],
-    relatedQuestions: Question[] | QuestionId[],
+    relatedQuestions: Question[] | QuestionSimplified[] | QuestionId[],
     questionStatus: QuestionStatus,
 }
 
