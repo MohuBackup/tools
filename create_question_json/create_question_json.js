@@ -8,12 +8,11 @@ const baseFilePath = `../../backups/${backupType}`
 const outputPath = "../../json"
 
 /** @typedef {import("./typedef").Question} Question */
-/** @typedef {import("./typedef").Tag} Tag */
-/** @typedef {import("./typedef").QuestionDetail} QuestionDetail */
+/** @typedef {import("./typedef").AnswerDetail} AnswerDetail */
 
 /**
  * @param {Document} document 
- * @returns {Tag[]}
+ * @returns {(import("./typedef").Tag)[]}
  */
 const getTagsData = (document) => {
     /** @type {NodeListOf<HTMLSpanElement>} */
@@ -29,7 +28,7 @@ const getTagsData = (document) => {
 
 /**
  * @param {Document} document 
- * @returns {QuestionDetail}
+ * @returns {import("./typedef").QuestionDetail}
  */
 const getQuestionDetail = (document) => {
     const titleE = document.querySelector(".aw-question-detail > .mod-head > h1")
@@ -53,7 +52,8 @@ const getQuestionDetail = (document) => {
     const dateE = metaE.firstElementChild
     const date = new Date(dateE.textContent)
 
-    const commentE = metaE.querySelector("a")
+    /** @type {HTMLAnchorElement} */
+    const commentE = metaE.querySelector("a.aw-add-comment")
     const comments = +commentE.dataset.commentCount
 
 
@@ -69,16 +69,67 @@ const getQuestionDetail = (document) => {
 }
 
 /**
+ * @param {HTMLDivElement} answerDiv 
+ * @returns {AnswerDetail}
+ */
+const getAnswerDetail = (answerDiv) => {
+    /** @type {HTMLAnchorElement} */
+    const authorA = answerDiv.querySelector("a.aw-user-img")
+    const author = +authorA.dataset.id || null
+
+    const agreeByElement = answerDiv.querySelector(".aw-agree-by")
+    const agreeByUsers = agreeByElement.querySelectorAll(".aw-user-name")
+    const agreeBy = [...agreeByUsers].map(
+        /** @param {HTMLAnchorElement} x */
+        (x) => {
+            return +x.dataset.id
+        }
+    )
+
+    const usingMobilePhone = !!answerDiv.querySelector(".title i.icon.icon-phone")
+
+    const bodyDiv = answerDiv.querySelector(".mod-body > .markitup-box")
+    const body = bodyDiv.innerHTML.trim()
+
+    
+    const metaDiv = answerDiv.querySelector(".mod-footer > .meta")
+    
+    /** @type {HTMLAnchorElement} */
+    const commentA = metaDiv.querySelector("a.aw-add-comment")
+    const comments = +commentA.dataset.commentCount
+
+    const dateE = metaDiv.firstElementChild
+    const date = new Date(dateE.textContent)
+
+}
+
+/**
+* @param {Document} document 
+* @returns {AnswerDetail[]}
+*/
+const getAnswers = (document) => {
+    /** @type {NodeListOf<HTMLDivElement>} */
+    const answerDivs = document.querySelectorAll(".aw-feed-list .aw-item")
+
+    return [...answerDivs].map(x => {
+        getAnswerDetail(x)
+    })
+}
+
+
+/**
  * @param {number} qid 
  * @param {Document} document 
  * @returns {Question}
  */
 const getQuestionData = (qid, document) => {
+    console.log(getQuestionDetail(document))
     return {
         type: "question",
         id: qid,
         tags: getTagsData(document),
-        detail: getQuestionDetail(document)
+        detail: getQuestionDetail(document),
+        answers: getAnswers(document),
     }
 }
 
@@ -91,6 +142,7 @@ const handler = async (qid) => {
 
     const data = getQuestionData(qid, document)
 
-    fs.writeJSON(`${outputPath}/${qid}.json`, data, { spaces: 4 })
+    // fs.writeJSON(`${outputPath}/${qid}.json`, data, { spaces: 4 })
 }
 
+handler(1883)
