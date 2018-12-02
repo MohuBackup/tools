@@ -5,7 +5,7 @@ const { getAllQidsThen } = require("../util")
 
 const backupType = "question"
 const baseFilePath = `../../backups/${backupType}`
-const outputPath = "../../json"
+const outputPath = `../../json/${backupType}`
 
 /** @typedef {import("./typedef").Question} Question */
 /** @typedef {import("./typedef").AnswerDetail} AnswerDetail */
@@ -188,7 +188,10 @@ const handler = async (qid) => {
 
     const data = getQuestionData(qid, document)
 
+    await fs.ensureDir(outputPath)
     fs.writeJSON(`${outputPath}/${qid}.json`, data, { spaces: 4 })
 }
 
-getAllQidsThen(baseFilePath,handler)
+
+// handler(299)
+getAllQidsThen(baseFilePath, handler)
