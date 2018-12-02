@@ -34,7 +34,7 @@ const download = async (f, saveTo = f) => {
     try {
         const r = await fetch(baseURL + f, {
             timeout: 10000,
-            // agent
+            agent
         })
         if (r.ok) {
             const imgPath = path.resolve(
