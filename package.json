@@ -14,6 +14,8 @@
     "fs-extra": "^7.0.1",
     "http-server": "^0.11.1",
     "jsdom": "^13.0.0",
+    "moment": "^2.22.2",
+    "moment-timezone": "^0.5.23",
     "node-fetch": "^2.3.0",
     "socks-proxy-agent": "^4.0.1"
   },
