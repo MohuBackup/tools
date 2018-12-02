@@ -9,10 +9,11 @@ const moment = require("moment-timezone")
 const { getAllQidsThen } = require("./util")
 
 
-const baseFilePath = "../backups/question"
+const baseFilePath = "../archive.is/question"
 
 const r0 = />(\d+) (天|小时)前</g
 const r1 = new RegExp(`最新活动: <span class="aw-text-color-blue"${r0.source}`, "g")
+const r2 = new RegExp(`最新活动:(\r)?\n.+?${r0.source}`, "g")
 
 
 /**
@@ -60,11 +61,12 @@ const absolutizeTime = async (qid) => {
             .tz("Asia/Shanghai")  // 使用UTC+08:00时区
             .format(dateOnly ? "YYYY-MM-DD" : "YYYY-MM-DD HH:mm")
 
-        return match.replace(/>.+?</, `>${formatted}<`)
+        return match.replace(/>[^><]+?</, `>${formatted}<`)
     }
 
     const output = html
         .replace(r1, replacer)
+        .replace(r2, replacer)
         .replace(r0, replacer)
 
     fs.writeFile(f, output)
