@@ -1,7 +1,12 @@
 // @ts-check
+/**
+ * @fileoverview 绝对化时间 ( 1天前 → 2018-12-1 )
+ */
+
 const fs = require("fs-extra")
 const path = require("path")
 const moment = require("moment-timezone")
+const { getAllQidsThen } = require("./util")
 
 
 const baseFilePath = "../backups/question"
@@ -45,20 +50,25 @@ const absolutizeTime = async (qid) => {
      */
     const replacer = (match, n, unit_zh) => {
         const unit = unit_zh == "天" ? "days" : "hours"  // 翻译时间单位
+        const dateOnly = !match.includes("最新活动")
 
         const archiveTime = archiveTimeData[qid]
 
         const absTime = moment(archiveTime).subtract((+n), unit)
 
-        const formatted = absTime.tz("Asia/Shanghai").format("YYYY-MM-DD HH:mm")
+        const formatted = absTime
+            .tz("Asia/Shanghai")  // 使用UTC+08:00时区
+            .format(dateOnly ? "YYYY-MM-DD" : "YYYY-MM-DD HH:mm")
 
         return match.replace(/>.+?</, `>${formatted}<`)
     }
 
-    const output = html.replace(r1, replacer)
+    const output = html
+        .replace(r1, replacer)
+        .replace(r0, replacer)
 
     fs.writeFile(f, output)
 
 }
 
-absolutizeTime(4097)
+getAllQidsThen(baseFilePath, absolutizeTime)
