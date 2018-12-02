@@ -52,13 +52,13 @@ def resDataItem(qid, rawURL, url, archiveTime):
 
 
 def parseDatetime(s):
-    return datetime.strptime(s, "%Y-%m-%dT%X")
+    return datetime.strptime(s, "%Y-%m-%dT%XZ")
 
 
 def getArchiveTime(url):
     r = re.compile("\d{14}")
     t = r.search(url).group(0)
-    return datetime.strptime(t, "%Y%m%d%H%M%S").isoformat()
+    return datetime.strptime(t, "%Y%m%d%H%M%S").isoformat() + "Z"
 
 
 def resolveResponse(res):
