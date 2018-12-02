@@ -96,10 +96,13 @@ const getProxyAgent = () => {
     return agent
 }
 
+/**
+ * @typedef {{ id: number; url: string; rawURL: string; archiveTime: string; }} resDataItem
+ */
 
 /**
  * @typedef {{"user-url": string; "user-name": string; avatar?: string;}} AvatarUrlObj
-*/
+ */
 
 /**
  * @typedef {{"user-id": number; "user-url": string; "user-name": string; "user-description"?: string; avatar?: string;}} UserObj extends AvatarUrlObj 
