@@ -11,12 +11,16 @@ const usersJsonFilePath = "../../backups/users.json"
 /** @type {import("./typedef").UserObj[]} */
 const users = fs.readJsonSync(usersJsonFilePath)
 
-const lostUsersJsonFilePath = "../../backups/lost-users.json"
+const lostUsersJsonFilePath = "../../archive.is/lost-users.json"
 const lostUsers = new Set()
 
 const tagsJsonFilePath = "../../backups/tags.json"
 /** @type {{ [tagName: string]: number; }[]} */
 const allTags = fs.readJsonSync(tagsJsonFilePath)
+
+
+/** @typedef {import("./typedef").Question} Question */
+
 
 /**
  * @param {Document} document 
@@ -92,8 +96,12 @@ const getQuestionDetail = (document) => {
     if (authorE) {
         const authorUserName = authorE.text
         const a = users.find(u => u["user-name"] == authorUserName)
+        if (!a) {
+            lostUsers.add(authorUserName)
+        }
+
         author = {
-            "user-id": a["user-id"],
+            "user-id": a ? a["user-id"] : -1,
             "user-name": a["user-name"]
         }
     } else {
@@ -106,15 +114,13 @@ const getQuestionDetail = (document) => {
 
     const D = document.querySelectorAll("div.body > div > div > div > div > div > div > div > div")
     const bodyE = D[0]
-    const metaDivIndex  = link ? 2 : 1
+    const metaDivIndex = link ? 2 : 1
     const metaDiv = D[metaDivIndex]
 
-    removeBlankSpans(bodyE)
     replaceDivWithP(bodyE, document)
     removeUselessStyle(bodyE)
     const body = bodyE.innerHTML.trim()
 
-    removeBlankSpans(metaDiv)
     const t = metaDiv.querySelector("span").textContent.trim()
     const date = new Date(t)
 
@@ -133,6 +139,60 @@ const getQuestionDetail = (document) => {
     }
 }
 
+/**
+ * @param {Document} document  
+ * @returns {(import("./typedef").QuestionSimplified)[]}
+ */
+const getRelatedQuestions = (document) => {
+    /** @type {NodeListOf<HTMLAnchorElement>} */
+    const qs = document.querySelectorAll("div.body > div > div > div > div > div > div > div > ul a")
+
+    return [...qs].filter(x => {
+        return x.href.match(/question\/\d+/)
+    }).map(x => {
+        return {
+            title: x.text,
+            id: +x.href.split("/").pop()
+        }
+    })
+}
+
+/**
+ * @param {Document} document  
+ * @returns {import("./typedef").QuestionStatus}
+ */
+const getQuestionStatus = (document) => {
+    /** @type {NodeListOf<HTMLSpanElement>} */
+    const statusSpans = document.querySelectorAll("div.body > div > div > div > div > div > div > div > ul > li > span")
+
+    const [t, views, concerns] = [...statusSpans].map(x => {
+        return x.textContent.trim()
+    })
+
+    return {
+        "last-active-time": new Date(t),
+        views: +views,
+        concerns: +concerns
+    }
+}
+
+/**
+ * @param {number} qid 
+ * @param {Document} document 
+ * @returns {Question}
+ */
+const getQuestionData = (qid, document) => {
+    return {
+        type: "question",
+        id: qid,
+        tags: getTagsData(document),
+        detail: getQuestionDetail(document),
+        answers: getAnswers(document),
+        relatedQuestions: getRelatedQuestions(document),
+        questionStatus: getQuestionStatus(document)
+    }
+}
+
 
 /**
  * @param {number} qid 
@@ -141,10 +201,19 @@ const handler = async (qid) => {
     const html = await fs.readFile(`${baseFilePath}/${qid}.html`, "utf-8")
     const { window: { document } } = new JSDOM(html)
 
-    console.log(getQuestionDetail(document))
+    removeBlankSpans(document)
+
+    // const data = backupType == "article" ? getArticleData(qid, document) : getQuestionData(qid, document)
+    // const data = getQuestionData(qid, document)
+    console.log(
+        getQuestionStatus(document)
+    )
+
+    // await fs.writeJSON(lostUsersJsonFilePath, [...lostUsers], { spaces: 4 })
+
 }
 
 (async () => {
-    handler(1883)
-    // handler(1447)
+    // handler(1883)
+    handler(1447)
 })()
