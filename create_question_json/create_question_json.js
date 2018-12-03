@@ -1,7 +1,7 @@
 // @ts-check
 const fs = require("fs-extra")
 const { JSDOM } = require("jsdom")
-const { getAllQidsThen } = require("../util")
+const { getFewQidsAndThen } = require("../util")
 
 /** @type { "question" | "article" } */
 const backupType = "article"
@@ -325,16 +325,7 @@ const handler = async (qid) => {
     // handler(252)
 
     // 一次仅处理少量文件，防止内存溢出
-    const l = []
-    getAllQidsThen(baseFilePath, (qid) => l.push(qid))
-
-    for (let i = 0; i <= Math.floor(l.length / 200) * 200; i = i + 200) {
-        await Promise.all(
-            l.slice(i, i + 200).map((qid) => {
-                return handler(qid)
-            })
-        )
-    }
+    await getFewQidsAndThen(handler, baseFilePath, 200)
 
     await fs.writeJSON(lostUsersJsonFilePath, [...lostUsers], { spaces: 4 })
 

@@ -20,6 +20,28 @@ const getAllQidsThen = (baseFileName, callback) => {
 }
 
 /**
+ * 类似于 `getAllQidsThen` 函数，但一次仅处理少量文件，防止内存溢出
+ * @template T
+ * @param {(qid: number) => T} callback 
+ * @param {fs.PathLike} baseFileName 
+ * @param {number} n 
+ * @param {number} start 
+ */
+const getFewQidsAndThen = async (callback, baseFileName, n = 20, start = 0) => {
+    const l = []
+
+    getAllQidsThen(baseFileName, (qid) => l.push(qid))
+
+    for (let i = start; i <= Math.floor(l.length / n) * n; i = i + n) {
+        await Promise.all(
+            l.slice(i, i + n).map((qid) => {
+                return callback(qid)
+            })
+        )
+    }
+}
+
+/**
  * 扁平化数组  
  * (深度为1的 `Array.prototype.flat` 的简单实现)
  * @template A 
@@ -162,6 +184,7 @@ const sortUserObjArray = (userObjs) => {
 
 module.exports = {
     getAllQidsThen,
+    getFewQidsAndThen,
     readArrayFromJSON,
     fetch,
     flat,
