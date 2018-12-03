@@ -9,6 +9,7 @@ const outputPath = `../../json/${backupType}`
 
 /** @typedef {import("./typedef").Question} Question */
 /** @typedef {import("./typedef").AnswerDetail} AnswerDetail */
+/** @typedef {import("./typedef").Article} Article */
 
 /**
  * @param {Document} document 
@@ -46,9 +47,8 @@ const getMetaData = (metaDiv) => {
 
 /**
  * @param {Document} document 
- * @returns {import("./typedef").QuestionDetail}
  */
-const getQuestionDetail = (document) => {
+const getBaseDetail = (document) => {
     const titleE = document.querySelector(".aw-question-detail > .mod-head > h1")
     const title = titleE.textContent.trim()
 
@@ -65,14 +65,53 @@ const getQuestionDetail = (document) => {
     const linkE = detailE.querySelector(".aw-question-related-list a")
     const link = linkE && linkE.href
 
-    const metaE = detailE.querySelector(".meta")
-
     return {
         title,
         body,
         author: authorUserId,
         link,
-        ...getMetaData(metaE)
+    }
+}
+
+/**
+ * @param {Document} document 
+ * @returns {import("./typedef").QuestionDetail}
+ */
+const getQuestionDetail = (document) => {
+    const baseDetail = getBaseDetail(document)
+
+    const metaE = document.querySelector(".aw-question-detail .meta")
+    const metaData = getMetaData(metaE)
+
+    return {
+        ...baseDetail,
+        ...metaData
+    }
+}
+
+/**
+ * @param {Document} document 
+ * @returns {import("./typedef").ArticleDetail}
+ */
+const getArticleDetail = (document) => {
+    const baseDetail = getBaseDetail(document)
+
+    const metaDiv = document.querySelector(".aw-question-detail .meta")
+
+    const dateE = metaDiv.querySelector(".more-operate > em")
+    const date = new Date(dateE.textContent)
+
+    /** @type {NodeListOf<HTMLAnchorElement>} */
+    const votersAs = document.querySelectorAll(".aw-article-voter a.voter")
+    const voters = [...votersAs].map(x=>{
+        return x.dataset.originalTitle
+    })
+
+    return {
+        ...baseDetail,
+        voters,
+        publishTime: date,
+        modifyTime: date,
     }
 }
 
@@ -181,6 +220,21 @@ const getQuestionData = (qid, document) => {
         answers: getAnswers(document),
         relatedQuestions: getRelatedQuestions(document),
         questionStatus: getQuestionStatus(document)
+    }
+}
+
+/**
+ * @param {number} qid 
+ * @param {Document} document 
+ * @returns {Article}
+ */
+const getArticleData = (qid, document) => {
+    return {
+        type: "article",
+        id: qid,
+        tags: getTagsData(document),
+        relatedQuestions: getRelatedQuestions(document),
+        detail: getArticleDetail(document)
     }
 }
 

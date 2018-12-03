@@ -21,6 +21,7 @@ export interface Tag {
 // 用户相关
 
 type UserId = number
+type UserName = string
 
 export interface AvatarUrlObj {
     "user-url": string;
@@ -38,7 +39,7 @@ export interface UserObjSimplified {
     "user-name": string;
 }
 
-export type UserObjLike = UserObjSimplified | UserObj | UserId
+export type UserObjLike = UserObjSimplified | UserObj | UserId | UserName
 
 /**
  * 如果只能获取到用户数量，则为number
@@ -71,6 +72,7 @@ export interface AnswerDetail extends CreationBase {
 // 问题/文章相关
 
 type QuestionId = number
+type ArticleId = number
 
 export interface QuestionStatus {
     "last-active-time": Time, // 最后活跃时间
@@ -84,18 +86,36 @@ export interface QuestionDetail extends CreationBase {
     comments: Comments,
 }
 
+export interface ArticleDetail extends CreationBase {
+    title: string,
+    voters: UserObjLike[] | number,
+}
+
 export interface QuestionSimplified {
     title: string,
     id: QuestionId
 }
 
-export interface Question {
+interface QuestionOrArticleBase {
+    type: string,
+    id: number,
+    detail: QuestionDetail | ArticleDetail,
+    tags: TagId[] | Tag[],
+    relatedQuestions: Question[] | QuestionSimplified[] | QuestionId[],
+}
+
+export interface Question extends QuestionOrArticleBase {
     type: "question",  // 固定值
     id: QuestionId,
-    tags: TagId[] | Tag[],
     detail: QuestionDetail,
     answers: AnswerDetail[],
-    relatedQuestions: Question[] | QuestionSimplified[] | QuestionId[],
     questionStatus: QuestionStatus,
+}
+
+export interface Article extends QuestionOrArticleBase {
+    type: "article",
+    id: ArticleId,
+    detail: ArticleDetail,
+    comments: CommentDetail[],
 }
 
