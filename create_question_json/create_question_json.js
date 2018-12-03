@@ -101,6 +101,12 @@ const getQuestionDetail = (document) => {
  */
 const getArticleDetail = (document) => {
     const baseDetail = getBaseDetail(document)
+    /**
+     * 删除link属性
+     * 如果不删除，最后的函数返回值将和ArticleDetail接口相比多出link属性
+     * (ts-check似乎无法检查对象解构后多出的属性)
+     */
+    delete baseDetail.link
 
     const metaDiv = document.querySelector(".aw-question-detail .meta")
 
@@ -120,8 +126,7 @@ const getArticleDetail = (document) => {
     })
 
     return {
-        ...baseDetail,  // 解构后和ArticleDetail接口相比多出了link属性
-        ...{ link: undefined },  // 删除link属性, 且不会报错 (ts-check似乎无法检查对象解构后多出的属性)
+        ...baseDetail,
         voters,
         publishTime: date,
         modifyTime: date,
