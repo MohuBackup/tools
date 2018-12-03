@@ -21,6 +21,8 @@ const allTags = fs.readJsonSync(tagsJsonFilePath)
 const imgUploadsJsonFilePath = "../../backups/uploads_formatted.json"
 /** @type {(import("../get_user_img").imgDataItem)[]} */
 const imgUploads = fs.readJsonSync(imgUploadsJsonFilePath)
+const lostImgsJsonFilePath = "../../archive.is/lost-imgs.json"
+const lostImgs = new Set()
 
 /**
  * @returns {{ [qid: number]: number}}
@@ -166,7 +168,8 @@ const getAnswerDetail = (answerDiv, folded = false) => {
         const srcFound = imgUploads.find(u => {
             return u[0] == src
         })
-        body += `\n<img src="${srcFound ? srcFound[1] : src}" />`
+        if (!srcFound) lostImgs.add(src)
+        body += `\n<img src="${srcFound ? srcFound[1] : src}">`
     })
 
     const dateE = metaDiv.querySelector("div:only-child > span:first-child")
@@ -333,11 +336,12 @@ const handler = async (qid) => {
 
 (async () => {
     // handler(1883)
-    handler(1)
+    // handler(1)
 
     // 一次仅处理少量文件，防止内存溢出
-    // await getFewQidsAndThen(handler, baseFilePath, 20, 4400)
+    await getFewQidsAndThen(handler, baseFilePath, 20)
 
-    // await fs.writeJSON(lostUsersJsonFilePath, [...lostUsers], { spaces: 4 })
+    await fs.writeJSON(lostImgsJsonFilePath, [...lostImgs], { spaces: 4 })
+    await fs.writeJSON(lostUsersJsonFilePath, [...lostUsers], { spaces: 4 })
 
 })()

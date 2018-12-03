@@ -4,7 +4,7 @@ const { JSDOM } = require("jsdom")
 const { getFewQidsAndThen } = require("../util")
 
 /** @type { "question" | "article" } */
-const backupType = "article"
+const backupType = "question"
 const baseFilePath = `../../backups/${backupType}`
 const outputPath = `../../json/${backupType}`
 
@@ -165,11 +165,11 @@ const getAnswerDetail = (answerDiv) => {
 
     const bodyDiv = answerDiv.querySelector(".mod-body > .markitup-box")
     let body = bodyDiv.innerHTML.trim()
-    
+
     /** @type {NodeListOf<HTMLImageElement>} */
     const bodyImgs = answerDiv.querySelectorAll(".mod-body > .aw-upload-img-list img")
     bodyImgs.forEach(x => {
-        body += `\n<img src="${x.src}" />`
+        body += `\n<img src="${x.src}">`
     })
 
     const metaDiv = answerDiv.querySelector(".mod-footer > .meta")
