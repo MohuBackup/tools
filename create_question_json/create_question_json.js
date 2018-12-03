@@ -12,6 +12,9 @@ const usersJsonFilePath = "../../backups/users.json"
 /** @type {import("./typedef").UserObj[]} */
 const users = fs.readJsonSync(usersJsonFilePath)
 
+const lostUsersJsonFilePath = "../../backups/lost-users.json"
+const lostUsers = new Set()
+
 /** @typedef {import("./typedef").Question} Question */
 /** @typedef {import("./typedef").AnswerDetail} AnswerDetail */
 /** @typedef {import("./typedef").Article} Article */
@@ -118,6 +121,10 @@ const getArticleDetail = (document) => {
     const voters = [...votersAs].map(x => {
         const userName = x.dataset.originalTitle
         const user = users.find(u => u["user-name"] == userName)
+        if (!user) {
+            lostUsers.add(userName)
+            console.log(userName)
+        }
 
         return {
             "user-id": user ? user["user-id"] : -1,
@@ -197,6 +204,10 @@ const getArticleCommentsDetail = (ArticleCommentDiv) => {
     const authorImg = ArticleCommentDiv.querySelector(".mod-head img")
     const authorUserName = authorImg.alt
     const author = users.find(u => u["user-name"] == authorUserName)
+    if (!author) {
+        lostUsers.add(authorUserName)
+        console.log(authorUserName)
+    }
 
     const bodyDiv = ArticleCommentDiv.querySelector(".mod-body > .markitup-box")
     const body = bodyDiv.innerHTML.trim()
@@ -311,16 +322,20 @@ const handler = async (qid) => {
 }
 
 (async () => {
-    // handler(299)
+    // handler(252)
+
     // 一次仅处理少量文件，防止内存溢出
     const l = []
     getAllQidsThen(baseFilePath, (qid) => l.push(qid))
 
-    for (let i = 0; i <= 4000; i = i + 200) {
+    for (let i = 0; i <= Math.floor(l.length / 200) * 200; i = i + 200) {
         await Promise.all(
             l.slice(i, i + 200).map((qid) => {
                 return handler(qid)
             })
         )
     }
+
+    await fs.writeJSON(lostUsersJsonFilePath, [...lostUsers], { spaces: 4 })
+
 })()
