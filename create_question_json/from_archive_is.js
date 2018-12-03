@@ -83,6 +83,44 @@ const replaceDivWithP = (x, document) => {
 }
 
 /**
+ * @param {HTMLAnchorElement} authorE 
+ * @returns {import("./typedef").UserObjSimplified}
+ */
+const getAuthor = (authorE) => {
+    if (authorE && authorE.href.includes("/people/")) {
+        const authorUserName = authorE.text
+        const a = users.find(u => u["user-name"] == authorUserName)
+        if (!a) {
+            lostUsers.add(authorUserName)
+        }
+
+        return {
+            "user-id": a ? a["user-id"] : -1,
+            "user-name": a["user-name"]
+        }
+    } else {
+        return null
+    }
+}
+
+/**
+ * @param {HTMLDivElement} answerDiv 
+ * @returns {AnswerDetail}
+ */
+const getAnswerDetail = (answerDiv) => {
+    const authorInfoDiv = answerDiv.querySelector("div > div:nth-child(3) > div:nth-child(1)")
+    const authorA = authorInfoDiv.querySelector("a")
+    const author = getAuthor(authorA)
+
+    const usingMobilePhone = !!authorInfoDiv.querySelector("i:last-child")
+
+    /** @type {NodeListOf<HTMLAnchorElement>} x */
+    const agreeByUsersAs = answerDiv.querySelectorAll("div > div:nth-child(3) > div:nth-child(2) > a")
+    const agreeBy = [...agreeByUsersAs].map(x => getAuthor(x))
+
+}
+
+/**
  * @param {Document} document 
  * @returns {{detail: import("./typedef").QuestionDetail; answers: AnswerDetail[]; }}
  */
@@ -92,22 +130,7 @@ const getQuestionDetailAndAnswers = (document) => {
 
     /** @type {HTMLAnchorElement} */
     const authorE = document.querySelector("div.body dd > a")
-    /** @type {import("./typedef").UserObjSimplified} */
-    let author
-    if (authorE) {
-        const authorUserName = authorE.text
-        const a = users.find(u => u["user-name"] == authorUserName)
-        if (!a) {
-            lostUsers.add(authorUserName)
-        }
-
-        author = {
-            "user-id": a ? a["user-id"] : -1,
-            "user-name": a["user-name"]
-        }
-    } else {
-        author = null
-    }
+    const author = getAuthor(authorE)
 
     /** @type {HTMLAnchorElement} */
     const linkE = document.querySelector("div.body > div > div > div > div > div > div > div > div > div > ul a")
