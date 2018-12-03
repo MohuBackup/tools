@@ -104,9 +104,14 @@ const getAnswerDetail = (answerDiv) => {
 
     const metaDiv = answerDiv.querySelector(".mod-footer > .meta")
 
+    // 判断答案是否被折叠
+    const folded = +answerDiv.attributes.getNamedItem("uninterested_count").value > 0
+        || +answerDiv.attributes.getNamedItem("force_fold").value > 0
+
     return {
         author,
         body,
+        folded,
         "agree-by": agreeBy,
         "using-mobile-phone": usingMobilePhone,
         ...getMetaData(metaDiv)
@@ -192,6 +197,17 @@ const handler = async (qid) => {
     fs.writeJSON(`${outputPath}/${qid}.json`, data, { spaces: 4 })
 }
 
+(async () => {
+    // handler(299)
+    // 一次仅处理少量文件，防止内存溢出
+    const l = []
+    getAllQidsThen(baseFilePath, (qid) => l.push(qid))
 
-// handler(299)
-getAllQidsThen(baseFilePath, handler)
+    for (let i = 0; i <= 4000; i = i + 200) {
+        await Promise.all(
+            l.slice(i, i + 200).map((qid) => {
+                return handler(qid)
+            })
+        )
+    }
+})()

@@ -64,6 +64,7 @@ export interface AnswerDetail extends CreationBase {
     "agree-by": UserObjLike[] | number,
     comments: Comments,
     "using-mobile-phone"?: boolean,  // 是否使用手机评论，如果是，问题旁会有一个小小的手机图标
+    folded?: boolean,  // 是否被折叠
 }
 
 
