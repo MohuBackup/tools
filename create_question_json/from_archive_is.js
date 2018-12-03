@@ -45,8 +45,16 @@ const getTagsData = (document) => {
  * @param {Element} x 
  */
 const removeBlankSpans = (x) => {
-    if (x.outerHTML == "<span style=\"box-sizing: border-box; -moz-box-sizing: border-box; -ms-box-sizing: border-box; \"></span>") {
-        x.remove()
+    const s0 = "box-sizing: border-box; -moz-box-sizing: border-box; -ms-box-sizing: border-box; "
+    const s1 = s0 + "display:table;"
+    const s2 = s1 + "clear:both;"
+
+    if (x.tagName == "SPAN") {
+        const style = x.getAttribute("style")
+
+        if (style == s0 || style == s1 || style == s2) {
+            x.remove()
+        }
     }
 
     [...x.children].forEach(y => removeBlankSpans(y))
@@ -71,9 +79,12 @@ const removeUselessStyle = (x) => {
  * @param {Element} x 
  */
 const replaceDivWithP = (x, document) => {
-    const s = "text-align:left;box-sizing: border-box; -moz-box-sizing: border-box; -ms-box-sizing: border-box; margin: 0px 0px 10px; padding: 5px; "
+    const base = "text-align:left;box-sizing: border-box; -moz-box-sizing: border-box; -ms-box-sizing: border-box; "
+    const s0 = base + "margin: 0px 0px 10px; padding: 5px; "
+    const s1 = base + "position:relative;z-index:1;line-height:1.6;word-wrap:break-word;"
 
-    if (x.getAttribute("style") == s) {
+    const style = x.getAttribute("style")
+    if (style == s0 || style == s1) {
         const p = document.createElement("p")
         p.innerHTML = x.innerHTML
         x.replaceWith(p)
@@ -96,7 +107,7 @@ const getAuthor = (authorE) => {
 
         return {
             "user-id": a ? a["user-id"] : -1,
-            "user-name": a["user-name"]
+            "user-name": authorUserName
         }
     } else {
         return null
@@ -104,20 +115,43 @@ const getAuthor = (authorE) => {
 }
 
 /**
- * @param {HTMLDivElement} answerDiv 
+ * @param {Element} answerDiv 
+ * @param {boolean} folded 
  * @returns {AnswerDetail}
  */
-const getAnswerDetail = (answerDiv) => {
-    const authorInfoDiv = answerDiv.querySelector("div > div:nth-child(3) > div:nth-child(1)")
+const getAnswerDetail = (answerDiv, folded = false) => {
+    const [titleDiv, bodyDiv, metaDiv] = answerDiv.children
+
+    const [authorInfoDiv, agreeByUsersDiv] = titleDiv.querySelectorAll("div:last-child > div")
     const authorA = authorInfoDiv.querySelector("a")
     const author = getAuthor(authorA)
 
     const usingMobilePhone = !!authorInfoDiv.querySelector("i:last-child")
 
-    /** @type {NodeListOf<HTMLAnchorElement>} x */
-    const agreeByUsersAs = answerDiv.querySelectorAll("div > div:nth-child(3) > div:nth-child(2) > a")
-    const agreeBy = [...agreeByUsersAs].map(x => getAuthor(x))
+    const agreeByUsersAs = agreeByUsersDiv.querySelectorAll("a")
+    const agreeBy = [...agreeByUsersAs].filter(x => x.text != "更多 »").map(x => getAuthor(x))
 
+    replaceDivWithP(bodyDiv, answerDiv.getRootNode())
+    removeUselessStyle(bodyDiv)
+    const body = bodyDiv.innerHTML.trim()
+
+    const dateE = metaDiv.querySelector("div:only-child > span:first-child")
+    const date = new Date(dateE.textContent.trim())
+
+    /** @type {HTMLAnchorElement} */
+    const commentA = metaDiv.querySelector("div:only-child > span:nth-child(3) > a")
+    const comments = +commentA.text.match(/\d+/)[0]
+
+    return {
+        author,
+        body,
+        comments,
+        folded,
+        "agree-by": agreeBy,
+        "using-mobile-phone": usingMobilePhone,
+        publishTime: date,
+        modifyTime: date,
+    }
 }
 
 /**
@@ -153,10 +187,15 @@ const getQuestionDetailAndAnswers = (document) => {
     const comments = commentT.includes("添加评论") ? 0 : +commentT.match(/(\d+) 条评论/)[1]
 
     const answerDivs = [...D].slice(metaDivIndex + 2, -2)
-    const answerDivsFolded = [...D].slice(-1)[0].childNodes
-    const answers = answerDivs.map(x => {
-        return getAnswerDetail(x)
-    })
+    const answerDivsFolded = [...[...D].slice(-1)[0].children]
+    const answers = [
+        ...answerDivs.map(x => {
+            return getAnswerDetail(x)
+        }),
+        ...answerDivsFolded.map(x => {
+            return getAnswerDetail(x, true)
+        })
+    ]
 
     return {
         detail: {
