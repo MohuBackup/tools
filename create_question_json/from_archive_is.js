@@ -79,8 +79,9 @@ const replaceDivWithP = (x, document) => {
 
 /**
  * @param {Document} document 
+ * @returns {import("./typedef").QuestionDetail}
  */
-const getBaseDetail = (document) => {
+const getQuestionDetail = (document) => {
     const titleE = document.querySelector("div.body > div > div > div > div > div > div > div > h1")
     const title = titleE.textContent.trim()
 
@@ -99,22 +100,36 @@ const getBaseDetail = (document) => {
         author = null
     }
 
-    const bodyE = document.querySelectorAll("div.body > div > div > div > div > div > div > div > div")[0]
-    removeBlankSpans(bodyE)
-    replaceDivWithP(bodyE, document)
-    removeUselessStyle(bodyE)
-
-    const body = bodyE.innerHTML.trim()
-
     /** @type {HTMLAnchorElement} */
     const linkE = document.querySelector("div.body > div > div > div > div > div > div > div > div > div > ul a")
     const link = linkE && linkE.href
+
+    const D = document.querySelectorAll("div.body > div > div > div > div > div > div > div > div")
+    const bodyE = D[0]
+    const metaDivIndex  = link ? 2 : 1
+    const metaDiv = D[metaDivIndex]
+
+    removeBlankSpans(bodyE)
+    replaceDivWithP(bodyE, document)
+    removeUselessStyle(bodyE)
+    const body = bodyE.innerHTML.trim()
+
+    removeBlankSpans(metaDiv)
+    const t = metaDiv.querySelector("span").textContent.trim()
+    const date = new Date(t)
+
+    const commentA = metaDiv.querySelector("a")
+    const commentT = commentA.textContent
+    const comments = commentT.includes("添加评论") ? 0 : +commentT.match(/(\d+) 条评论/)[1]
 
     return {
         title,
         body,
         author,
         link,
+        comments,
+        publishTime: date,
+        modifyTime: date
     }
 }
 
@@ -126,9 +141,10 @@ const handler = async (qid) => {
     const html = await fs.readFile(`${baseFilePath}/${qid}.html`, "utf-8")
     const { window: { document } } = new JSDOM(html)
 
-    console.log(getBaseDetail(document))
+    console.log(getQuestionDetail(document))
 }
 
 (async () => {
     handler(1883)
+    // handler(1447)
 })()
