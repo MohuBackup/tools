@@ -3,13 +3,15 @@ const fs = require("fs-extra")
 const { JSDOM } = require("jsdom")
 const { getAllQidsThen } = require("../util")
 
-const backupType = "question"
+/** @type { "question" | "article" } */
+const backupType = "article"
 const baseFilePath = `../../backups/${backupType}`
 const outputPath = `../../json/${backupType}`
 
 /** @typedef {import("./typedef").Question} Question */
 /** @typedef {import("./typedef").AnswerDetail} AnswerDetail */
 /** @typedef {import("./typedef").Article} Article */
+/** @typedef {import("./typedef").CommentDetail} CommentDetail */
 
 /**
  * @param {Document} document 
@@ -103,7 +105,7 @@ const getArticleDetail = (document) => {
 
     /** @type {NodeListOf<HTMLAnchorElement>} */
     const votersAs = document.querySelectorAll(".aw-article-voter a.voter")
-    const voters = [...votersAs].map(x=>{
+    const voters = [...votersAs].map(x => {
         return x.dataset.originalTitle
     })
 
@@ -171,6 +173,42 @@ const getAnswers = (document) => {
 }
 
 /**
+ * @param {HTMLDivElement} ArticleCommentDiv 
+ * @returns {CommentDetail}
+ */
+const getArticleCommentsDetail = (ArticleCommentDiv) => {
+    /** @type {HTMLImageElement} */
+    const authorImg = ArticleCommentDiv.querySelector(".mod-head img")
+    const authorUserName = authorImg.alt
+
+    const bodyDiv = ArticleCommentDiv.querySelector(".mod-body > .markitup-box")
+    const body = bodyDiv.innerHTML.trim()
+
+    const t = ArticleCommentDiv.querySelector(".meta > span").textContent
+    const date = new Date(t)
+
+    return {
+        author: authorUserName,
+        body,
+        publishTime: date,
+        modifyTime: date
+    }
+}
+
+/**
+ * @param {Document} document 
+ * @returns {CommentDetail[]}
+ */
+const getArticleComments = (document) => {
+    /** @type {NodeListOf<HTMLDivElement>} */
+    const answerDivs = document.querySelectorAll(".aw-feed-list .aw-item")
+
+    return [...answerDivs].map(x => {
+        return getArticleCommentsDetail(x)
+    })
+}
+
+/**
  * @param {Document} document  
  * @returns {(import("./typedef").QuestionSimplified)[]}
  */
@@ -234,7 +272,8 @@ const getArticleData = (qid, document) => {
         id: qid,
         tags: getTagsData(document),
         relatedQuestions: getRelatedQuestions(document),
-        detail: getArticleDetail(document)
+        detail: getArticleDetail(document),
+        comments: getArticleComments(document)
     }
 }
 
@@ -245,7 +284,7 @@ const handler = async (qid) => {
     const html = await fs.readFile(`${baseFilePath}/${qid}.html`, "utf-8")
     const { window: { document } } = new JSDOM(html)
 
-    const data = getQuestionData(qid, document)
+    const data = backupType == "article" ? getArticleData(qid, document) : getQuestionData(qid, document)
 
     await fs.ensureDir(outputPath)
     fs.writeJSON(`${outputPath}/${qid}.json`, data, { spaces: 4 })
