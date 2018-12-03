@@ -20,6 +20,7 @@ const allTags = fs.readJsonSync(tagsJsonFilePath)
 
 
 /** @typedef {import("./typedef").Question} Question */
+/** @typedef {import("./typedef").AnswerDetail} AnswerDetail */
 
 
 /**
@@ -83,9 +84,9 @@ const replaceDivWithP = (x, document) => {
 
 /**
  * @param {Document} document 
- * @returns {import("./typedef").QuestionDetail}
+ * @returns {{detail: import("./typedef").QuestionDetail; answers: AnswerDetail[]; }}
  */
-const getQuestionDetail = (document) => {
+const getQuestionDetailAndAnswers = (document) => {
     const titleE = document.querySelector("div.body > div > div > div > div > div > div > div > h1")
     const title = titleE.textContent.trim()
 
@@ -128,14 +129,23 @@ const getQuestionDetail = (document) => {
     const commentT = commentA.textContent
     const comments = commentT.includes("添加评论") ? 0 : +commentT.match(/(\d+) 条评论/)[1]
 
+    const answerDivs = [...D].slice(metaDivIndex + 2, -2)
+    const answerDivsFolded = [...D].slice(-1)[0].childNodes
+    const answers = answerDivs.map(x => {
+        return getAnswerDetail(x)
+    })
+
     return {
-        title,
-        body,
-        author,
-        link,
-        comments,
-        publishTime: date,
-        modifyTime: date
+        detail: {
+            title,
+            body,
+            author,
+            link,
+            comments,
+            publishTime: date,
+            modifyTime: date
+        },
+        answers
     }
 }
 
@@ -182,12 +192,14 @@ const getQuestionStatus = (document) => {
  * @returns {Question}
  */
 const getQuestionData = (qid, document) => {
+    const { detail, answers } = getQuestionDetailAndAnswers(document)
+
     return {
         type: "question",
         id: qid,
         tags: getTagsData(document),
-        detail: getQuestionDetail(document),
-        answers: getAnswers(document),
+        detail,
+        answers,
         relatedQuestions: getRelatedQuestions(document),
         questionStatus: getQuestionStatus(document)
     }
