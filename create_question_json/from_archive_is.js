@@ -18,6 +18,10 @@ const tagsJsonFilePath = "../../backups/tags.json"
 /** @type {{ [tagName: string]: number; }[]} */
 const allTags = fs.readJsonSync(tagsJsonFilePath)
 
+const imgUploadsJsonFilePath = "../../backups/uploads_formatted.json"
+/** @type {(import("../get_user_img").imgDataItem)[]} */
+const imgUploads = fs.readJsonSync(imgUploadsJsonFilePath)
+
 /**
  * @returns {{ [qid: number]: number}}
  */
@@ -153,7 +157,17 @@ const getAnswerDetail = (answerDiv, folded = false) => {
 
     replaceDivWithP(bodyDiv, answerDiv.getRootNode())
     removeUselessStyle(bodyDiv)
-    const body = bodyDiv.innerHTML.trim()
+    let body = bodyDiv.querySelector("div").innerHTML.trim()
+
+    /** @type {NodeListOf<HTMLImageElement>} */
+    const bodyImgs = bodyDiv.querySelectorAll("div > a > img")
+    bodyImgs.forEach(x => {
+        const src = x.src
+        const srcFound = imgUploads.find(u => {
+            return u[0] == src
+        })
+        body += `\n<img src="${srcFound ? srcFound[1] : src}" />`
+    })
 
     const dateE = metaDiv.querySelector("div:only-child > span:first-child")
     const date = new Date(dateE.textContent.trim())
@@ -246,7 +260,7 @@ const getRelatedQuestions = (document) => {
         return x.href.match(/question\/\d+/)
     }).map(x => {
         return {
-            title: x.text,
+            title: x.text.trim(),
             id: +x.href.split("/").pop()
         }
     })
@@ -319,11 +333,11 @@ const handler = async (qid) => {
 
 (async () => {
     // handler(1883)
-    // handler(1)
+    handler(1)
 
     // 一次仅处理少量文件，防止内存溢出
-    await getFewQidsAndThen(handler, baseFilePath, 20, 4400)
+    // await getFewQidsAndThen(handler, baseFilePath, 20, 4400)
 
-    await fs.writeJSON(lostUsersJsonFilePath, [...lostUsers], { spaces: 4 })
+    // await fs.writeJSON(lostUsersJsonFilePath, [...lostUsers], { spaces: 4 })
 
 })()

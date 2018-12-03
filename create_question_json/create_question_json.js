@@ -164,7 +164,13 @@ const getAnswerDetail = (answerDiv) => {
     const usingMobilePhone = !!answerDiv.querySelector(".title i.icon.icon-phone")
 
     const bodyDiv = answerDiv.querySelector(".mod-body > .markitup-box")
-    const body = bodyDiv.innerHTML.trim()
+    let body = bodyDiv.innerHTML.trim()
+    
+    /** @type {NodeListOf<HTMLImageElement>} */
+    const bodyImgs = answerDiv.querySelectorAll(".mod-body > .aw-upload-img-list img")
+    bodyImgs.forEach(x => {
+        body += `\n<img src="${x.src}" />`
+    })
 
     const metaDiv = answerDiv.querySelector(".mod-footer > .meta")
 
