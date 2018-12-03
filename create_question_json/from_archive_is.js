@@ -325,9 +325,10 @@ const handler = async (qid) => {
     const l = []
     getAllQidsThen(baseFilePath, (qid) => l.push(qid))
 
-    for (let i = 0; i <= Math.floor(l.length / 200) * 200; i = i + 200) {
+    const n = 20
+    for (let i = 0; i <= Math.floor(l.length / n) * n; i = i + n) {
         await Promise.all(
-            l.slice(i, i + 200).map((qid) => {
+            l.slice(i, i + n).map((qid) => {
                 return handler(qid)
             })
         )
