@@ -18,6 +18,26 @@ const tagsJsonFilePath = "../../backups/tags.json"
 /** @type {{ [tagName: string]: number; }[]} */
 const allTags = fs.readJsonSync(tagsJsonFilePath)
 
+/**
+ * @returns {{ [qid: number]: number}}
+ */
+const getFormattedResData = (filePath) => {
+    /** @type {{ [qid: number]: number}} */
+    const formattedResData = {}
+
+    /** @typedef {import("../util").resDataItem} resDataItem */
+    /** @type {resDataItem[]} */
+    const resData = fs.readJSONSync(filePath)
+
+    resData.forEach(x => {
+        formattedResData[x.id] = new Date(x.archiveTime).getTime()
+    })
+
+    return formattedResData
+}
+const resData = getFormattedResData(`${baseFilePath}/resData.json`)
+const resDataFromArchiveOrg = getFormattedResData(`../../backups/${backupType}/resData.json`)
+
 
 /** @typedef {import("./typedef").Question} Question */
 /** @typedef {import("./typedef").AnswerDetail} AnswerDetail */
@@ -145,10 +165,10 @@ const getAnswerDetail = (answerDiv, folded = false) => {
     return {
         author,
         body,
-        comments,
         folded,
         "agree-by": agreeBy,
         "using-mobile-phone": usingMobilePhone,
+        comments,
         publishTime: date,
         modifyTime: date,
     }
@@ -172,7 +192,10 @@ const getQuestionDetailAndAnswers = (document) => {
 
     const D = document.querySelectorAll("div.body > div > div > div > div > div > div > div > div")
     const bodyE = D[0]
-    const metaDivIndex = link ? 2 : 1
+    const metaDivIndex = [...D].findIndex(x => {
+        const c = x.textContent
+        return c.includes("分享") && !!c.match(/\d{4}(-\d{2}){2}/)
+    })
     const metaDiv = D[metaDivIndex]
 
     replaceDivWithP(bodyE, document)
@@ -272,22 +295,44 @@ const getQuestionData = (qid, document) => {
  * @param {number} qid 
  */
 const handler = async (qid) => {
+    if (resData[qid] <= resDataFromArchiveOrg[qid]) return console.log("skipped qid=" + qid)
+
     const html = await fs.readFile(`${baseFilePath}/${qid}.html`, "utf-8")
     const { window: { document } } = new JSDOM(html)
 
-    removeBlankSpans(document)
+    try {
 
-    // const data = backupType == "article" ? getArticleData(qid, document) : getQuestionData(qid, document)
-    // const data = getQuestionData(qid, document)
-    console.log(
-        getQuestionStatus(document)
-    )
+        removeBlankSpans(document)
 
-    // await fs.writeJSON(lostUsersJsonFilePath, [...lostUsers], { spaces: 4 })
+        // const data = backupType == "article" ? getArticleData(qid, document) : getQuestionData(qid, document)
+        const data = getQuestionData(qid, document)
+
+        await fs.ensureDir(outputPath)
+        fs.writeJSON(`${outputPath}/${qid}.json`, data, { spaces: 4 })
+
+    } catch (e) {
+        console.error(`qid=${qid} failed`)
+        console.error(e)
+    }
 
 }
 
 (async () => {
     // handler(1883)
-    handler(1447)
+    // handler(1)
+
+    // 一次仅处理少量文件，防止内存溢出
+    const l = []
+    getAllQidsThen(baseFilePath, (qid) => l.push(qid))
+
+    for (let i = 0; i <= Math.floor(l.length / 200) * 200; i = i + 200) {
+        await Promise.all(
+            l.slice(i, i + 200).map((qid) => {
+                return handler(qid)
+            })
+        )
+    }
+
+    await fs.writeJSON(lostUsersJsonFilePath, [...lostUsers], { spaces: 4 })
+
 })()
