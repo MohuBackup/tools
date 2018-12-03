@@ -108,9 +108,10 @@ const replaceDivWithP = (x, document) => {
     const base = "text-align:left;box-sizing: border-box; -moz-box-sizing: border-box; -ms-box-sizing: border-box; "
     const s0 = base + "margin: 0px 0px 10px; padding: 5px; "
     const s1 = base + "position:relative;z-index:1;line-height:1.6;word-wrap:break-word;"
+    const s2 = "margin: 0px; padding: 5px;"
 
     const style = x.getAttribute("style")
-    if (style == s0 || style == s1) {
+    if (style == s0 || style == s1 || style == s2) {
         const p = document.createElement("p")
         p.innerHTML = x.innerHTML
         x.replaceWith(p)
@@ -159,7 +160,9 @@ const getAnswerDetail = (answerDiv, folded = false) => {
 
     replaceDivWithP(bodyDiv, answerDiv.getRootNode())
     removeUselessStyle(bodyDiv)
-    let body = bodyDiv.querySelector("div").innerHTML.trim()
+    const bodyP = bodyDiv.querySelector("p")
+    replaceDivWithP(bodyP, answerDiv.getRootNode())
+    let body = bodyP.innerHTML.trim()
 
     /** @type {NodeListOf<HTMLImageElement>} */
     const bodyImgs = bodyDiv.querySelectorAll("div > a > img")
@@ -335,8 +338,8 @@ const handler = async (qid) => {
 }
 
 (async () => {
-    // handler(1883)
-    // handler(1)
+    // await handler(1883)
+    // await handler(1)
 
     // 一次仅处理少量文件，防止内存溢出
     await getFewQidsAndThen(handler, baseFilePath, 20)
