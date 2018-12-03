@@ -16,7 +16,7 @@ const outputPath = `../../json/${backupType}`
  */
 const getTagsData = (document) => {
     /** @type {NodeListOf<HTMLSpanElement>} */
-    const tags = document.querySelectorAll(".topic-tag")
+    const tags = document.querySelectorAll(".tag-bar .topic-tag")
 
     return [...tags].map(x => {
         return {
