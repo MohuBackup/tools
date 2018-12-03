@@ -25,7 +25,7 @@ type UserName = string
 
 export interface AvatarUrlObj {
     "user-url": string;
-    "user-name": string;
+    "user-name": UserName;
     avatar?: string;
 }
 
@@ -36,10 +36,10 @@ export interface UserObj extends AvatarUrlObj {
 
 export interface UserObjSimplified {
     "user-id": UserId;
-    "user-name": string;
+    "user-name": UserName;
 }
 
-export type UserObjLike = UserObjSimplified | UserObj | UserId | UserName
+export type UserObjLike = UserObjSimplified | UserObj | UserId  // 不能用UserName来确定一个用户，因为UserName可以用户自行更改，而UserId不能随意改变且UserId是唯一的
 
 /**
  * 如果只能获取到用户数量，则为number

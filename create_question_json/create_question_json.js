@@ -8,6 +8,10 @@ const backupType = "article"
 const baseFilePath = `../../backups/${backupType}`
 const outputPath = `../../json/${backupType}`
 
+const usersJsonFilePath = "../../backups/users.json"
+/** @type {import("./typedef").UserObj[]} */
+const users = fs.readJsonSync(usersJsonFilePath)
+
 /** @typedef {import("./typedef").Question} Question */
 /** @typedef {import("./typedef").AnswerDetail} AnswerDetail */
 /** @typedef {import("./typedef").Article} Article */
@@ -106,11 +110,18 @@ const getArticleDetail = (document) => {
     /** @type {NodeListOf<HTMLAnchorElement>} */
     const votersAs = document.querySelectorAll(".aw-article-voter a.voter")
     const voters = [...votersAs].map(x => {
-        return x.dataset.originalTitle
+        const userName = x.dataset.originalTitle
+        const user = users.find(u => u["user-name"] == userName)
+
+        return {
+            "user-id": user ? user["user-id"] : -1,
+            "user-name": userName
+        }
     })
 
     return {
-        ...baseDetail,
+        ...baseDetail,  // 解构后和ArticleDetail接口相比多出了link属性
+        ...{ link: undefined },  // 删除link属性, 且不会报错 (ts-check似乎无法检查对象解构后多出的属性)
         voters,
         publishTime: date,
         modifyTime: date,
@@ -180,6 +191,7 @@ const getArticleCommentsDetail = (ArticleCommentDiv) => {
     /** @type {HTMLImageElement} */
     const authorImg = ArticleCommentDiv.querySelector(".mod-head img")
     const authorUserName = authorImg.alt
+    const author = users.find(u => u["user-name"] == authorUserName)
 
     const bodyDiv = ArticleCommentDiv.querySelector(".mod-body > .markitup-box")
     const body = bodyDiv.innerHTML.trim()
@@ -188,7 +200,10 @@ const getArticleCommentsDetail = (ArticleCommentDiv) => {
     const date = new Date(t)
 
     return {
-        author: authorUserName,
+        author: {
+            "user-id": author ? author["user-id"] : -1,
+            "user-name": authorUserName
+        },
         body,
         publishTime: date,
         modifyTime: date
