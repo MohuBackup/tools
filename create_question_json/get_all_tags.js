@@ -11,7 +11,7 @@ const output = {}
  * @param {number} qid 
  */
 const handler = async (inputPath, qid) => {
-    const data = await fs.readJson(`${inputPath}/${qid}.json`, "utf-8")
+    const data = await fs.readJson(`${inputPath}/${qid}.json`)
 
     /** @type {(import("./typedef").Tag)[]} */
     const tags = data.tags
