@@ -4,6 +4,7 @@ const { getAllQidsThen } = require("../util")
 
 const backupType = "question"
 const baseFilePath = `../../json/${backupType}`
+const outputJsonFilePath = "../../archive.is/lost_imgs1.json"
 
 const mohuHostName = /(?:www\.)?mohu(?:1|2)?\.(?:club|tw|tk|ml)/g.source
 const protocol = /http(?:s)?:\/\//g.source
@@ -48,17 +49,16 @@ const handler = async (qid) => {
     return imgs
 }
 
-// Promise.all(
-//     [handler(1259)]
-//     // getAllQidsThen(baseFilePath, handler)
-// ).then((allImgs) => {
+Promise.all(
+    getAllQidsThen(baseFilePath, handler)
+).then((allImgs) => {
 
-//     const lostImgs = allImgs.filter(x => {
-//         return !!x
-//     }).reduce((l, x) => {
-//         return l.concat(x)
-//     }, [])
+    const lostImgs = allImgs.filter(x => {
+        return !!x
+    }).reduce((l, x) => {
+        return l.concat(x)
+    }, [])
 
-// })
+    fs.writeJson(outputJsonFilePath, lostImgs, { spaces: 4 })
 
-handler(1259)
+})
