@@ -5,12 +5,16 @@ const { getAllQidsThen } = require("../util")
 const backupType = "question"
 const baseFilePath = `../../json/${backupType}`
 
-const r0 = /(\/uploads\/(\w|\.|\/)+)/g
-const r1 = /http(?:s)?:\/\/archive.is\/o\/\w{5}\/http(?:s)?:\/\/(?:www\.)?mohu(?:1|2)?.(?:club|tw|tk|ml)(\/uploads\/(?:\w|\.|\/)+)/g
-const r2 = /http(?:s)?:\/\/archive.is\/\w{5}\/(?:\w+\.\w+)/g
+const mohuHostName = /(?:www\.)?mohu(?:1|2)?\.(?:club|tw|tk|ml)/g.source
+const protocol = /http(?:s)?:\/\//g.source
+
+const rUrlPrefix = `${protocol}archive.is/o/\\w{5}/${protocol}${mohuHostName}`
+const rSavePath = "/uploads/(?:\\w|\\.|/)+"
+const rAlt = "\\w+\\.\\w+"
+const rDownloadURL = `${protocol}archive.is/\\w{5}/(?:\\w+\\.\\w+)`
 
 const quote = "\\\\\""
-const r3 = new RegExp(`<a href=${quote}${r1.source}${quote}><img alt=${quote}(\\w+\\.\\w+)${quote} src=${quote}(${r2.source})${quote}></a>`, "g")
+const r0 = new RegExp(`<a href=${quote}${rUrlPrefix}(${rSavePath})${quote}><img alt=${quote}(${rAlt})${quote} src=${quote}(${rDownloadURL})${quote}></a>`, "g")
 
 
 /**
@@ -20,50 +24,26 @@ const handler = async (qid) => {
     const jsonFilePath = `${baseFilePath}/${qid}.json`
     const input = await fs.readFile(jsonFilePath, "utf-8")
 
-    const replacer = (match, ...args) => {
-        args.pop()
-        args.pop()
-        console.log(args)
-    }
-
-
-    input.replace(r3, replacer)
-
-    const m = input.match(r1)
-
-    if (!m) return
-
-    /** @type {string[]} */
-    const saveToPaths = m.reduce((l, x) => {
-        return l.concat(
-            x.match(r0)[0]
-        )
-    }, [])
-
-    const downloadURLs = input.match(r2)
-
-    if (saveToPaths.length != downloadURLs.length) {
-        console.error(jsonFilePath + " failed")
-        return
-    }
-
     /** @type {(import("../get_user_img").imgDataItem)[]} */
-    const imgs = downloadURLs.map(
-        /** @return {[string, string]} */
-        (x, i) => {
-            return [
-                x,              // 下载地址
-                saveToPaths[i]  // 保存路径
-            ]
-        }
-    )
+    const imgs = []
 
-    // console.log(imgs)
+    const replacer = (match, savePath, alt, downloadURL) => {
 
-    // if (output != input) {
-    //     console.log(jsonFilePath)
-    //     fs.writeFile(jsonFilePath, output)
-    // }
+        imgs.push([
+            downloadURL,  // 下载地址
+            savePath      // 保存路径
+        ])
+
+        return `<img alt=\\"${alt}\\" src=\\"${savePath}\\">`
+    }
+
+
+    const output = input.replace(r0, replacer)
+
+    if (output != input) {
+        console.log(jsonFilePath)
+        fs.writeFile(jsonFilePath, output)
+    }
 
     return imgs
 }
