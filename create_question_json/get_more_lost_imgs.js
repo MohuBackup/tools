@@ -4,7 +4,7 @@ const { getAllQidsThen } = require("../util")
 
 const backupType = "question"
 const baseFilePath = `../../json/${backupType}`
-const outputJsonFilePath = "../../archive.is/lost_imgs2.json"
+const outputJsonFilePath = "../../archive.is/lost_imgs3.json"
 
 const mohuHostName = /(?:www\.)?mohu(?:1|2)?\.(?:club|tw|tk|ml)/g.source
 const protocol = /http(?:s)?:\/\//g.source
@@ -15,7 +15,7 @@ const rAlt = ".+?"
 const rDownloadURL = `${protocol}archive.is/\\w{5}/(?:\\w+\\.\\w+)`
 
 const quote = "\\\\\""
-const r0 = new RegExp(`<a href=${quote}${rUrlPrefix}(${rSavePath})${quote}><img alt=${quote}(${rAlt})${quote} src=${quote}(${rDownloadURL})${quote} (?:title=${quote}(${rAlt})${quote})? (?:.+?)?></a>`, "g")
+const r0 = new RegExp(`<a href=${quote}${rUrlPrefix}(${rSavePath})${quote}><img alt=${quote}(${rAlt})${quote} src=${quote}(${rDownloadURL})${quote}(?: title=${quote}(${rAlt})${quote})?(?:.+?)?></a>`, "g")
 
 
 /**
