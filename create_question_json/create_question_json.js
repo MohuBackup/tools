@@ -238,9 +238,9 @@ const getArticleCommentsDetail = (ArticleCommentDiv) => {
  */
 const getArticleComments = (document) => {
     /** @type {NodeListOf<HTMLDivElement>} */
-    const answerDivs = document.querySelectorAll(".aw-feed-list .aw-item")
+    const commentDivs = document.querySelectorAll(".aw-feed-list .aw-item")
 
-    return [...answerDivs].map(x => {
+    return [...commentDivs].map(x => {
         return getArticleCommentsDetail(x)
     })
 }
