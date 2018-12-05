@@ -4,18 +4,18 @@ const { getAllQidsThen } = require("../util")
 
 const backupType = "question"
 const baseFilePath = `../../json/${backupType}`
-const outputJsonFilePath = "../../archive.is/lost_imgs1.json"
+const outputJsonFilePath = "../../archive.is/lost_imgs2.json"
 
 const mohuHostName = /(?:www\.)?mohu(?:1|2)?\.(?:club|tw|tk|ml)/g.source
 const protocol = /http(?:s)?:\/\//g.source
 
 const rUrlPrefix = `${protocol}archive.is/o/\\w{5}/${protocol}${mohuHostName}`
 const rSavePath = "/uploads/(?:\\w|\\.|/)+"
-const rAlt = "\\w+\\.\\w+"
+const rAlt = ".+?"
 const rDownloadURL = `${protocol}archive.is/\\w{5}/(?:\\w+\\.\\w+)`
 
 const quote = "\\\\\""
-const r0 = new RegExp(`<a href=${quote}${rUrlPrefix}(${rSavePath})${quote}><img alt=${quote}(${rAlt})${quote} src=${quote}(${rDownloadURL})${quote}></a>`, "g")
+const r0 = new RegExp(`<a href=${quote}${rUrlPrefix}(${rSavePath})${quote}><img alt=${quote}(${rAlt})${quote} src=${quote}(${rDownloadURL})${quote} (?:title=${quote}(${rAlt})${quote})? (?:.+?)?></a>`, "g")
 
 
 /**
@@ -28,7 +28,10 @@ const handler = async (qid) => {
     /** @type {(import("../get_user_img").imgDataItem)[]} */
     const imgs = []
 
-    const replacer = (match, savePath, alt, downloadURL) => {
+    const replacer = (match, savePath, alt, downloadURL, title) => {
+        
+        // alt == title 这在WeCenter的图片上传阶段就已经决定了
+        console.log(alt)
 
         imgs.push([
             downloadURL,  // 下载地址
