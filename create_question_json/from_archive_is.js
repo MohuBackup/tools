@@ -3,7 +3,7 @@ const fs = require("fs-extra")
 const { JSDOM } = require("jsdom")
 const { getFewQidsAndThen } = require("../util")
 
-const backupType = "question"
+const backupType = "article"
 const baseFilePath = `../../archive.is/${backupType}`
 const outputPath = `../../json/${backupType}`
 
@@ -47,6 +47,9 @@ const resDataFromArchiveOrg = getFormattedResData(`../../backups/${backupType}/r
 
 /** @typedef {import("./typedef").Question} Question */
 /** @typedef {import("./typedef").AnswerDetail} AnswerDetail */
+/** @typedef {import("./typedef").Article} Article */
+/** @typedef {import("./typedef").CommentDetail} CommentDetail */
+/** @typedef {import("./typedef").UserObjSimplified} UserObjSimplified */
 
 
 /**
@@ -122,7 +125,7 @@ const replaceDivWithP = (x, document) => {
 
 /**
  * @param {HTMLAnchorElement} authorE 
- * @returns {import("./typedef").UserObjSimplified}
+ * @returns {UserObjSimplified}
  */
 const getAuthor = (authorE) => {
     if (authorE && authorE.href.includes("/people/")) {
@@ -135,6 +138,29 @@ const getAuthor = (authorE) => {
         return {
             "user-id": a ? a["user-id"] : -1,
             "user-name": authorUserName
+        }
+    } else {
+        return null
+    }
+}
+
+/**
+ * @param {HTMLAnchorElement} userImgA 
+ * @returns {UserObjSimplified}
+ */
+const getUserFromUserImgA = (userImgA) => {
+    if (userImgA.href.includes("/people/")) {
+        const userImg = userImgA.querySelector("img")
+        const userName = userImg.alt
+
+        const a = users.find(u => u["user-name"] == userName)
+        if (!a) {
+            lostUsers.add(userName)
+        }
+
+        return {
+            "user-id": a ? a["user-id"] : -1,
+            "user-name": userName
         }
     } else {
         return null
@@ -191,6 +217,31 @@ const getAnswerDetail = (answerDiv, folded = false) => {
         comments,
         publishTime: date,
         modifyTime: date,
+    }
+}
+
+/**
+ * @param {Element} ArticleCommentDiv 
+ * @returns {CommentDetail}
+ */
+const getArticleCommentsDetail = (ArticleCommentDiv) => {
+    const [authorDiv, bodyDiv, metadataDiv] = [...ArticleCommentDiv.children].filter(x => x.nodeName == "DIV")
+
+    const authorImgA = authorDiv.querySelectorAll("a")[0]
+    const author = getUserFromUserImgA(authorImgA)
+
+    replaceDivWithP(bodyDiv, bodyDiv.getRootNode())
+    removeUselessStyle(bodyDiv)
+    const body = bodyDiv.innerHTML.trim()
+
+    const t = metadataDiv.querySelector("div > span:not(:empty)").textContent.trim()
+    const date = new Date(t)
+
+    return {
+        author,
+        body,
+        publishTime: date,
+        modifyTime: date
     }
 }
 
@@ -255,6 +306,55 @@ const getQuestionDetailAndAnswers = (document) => {
 }
 
 /**
+ * @param {Document} document 
+ * @returns {{detail: import("./typedef").ArticleDetail; comments: CommentDetail[]; }}
+ */
+const getArticleDetailAndComments = (document) => {
+
+    const titleE = document.querySelector("div.body > div > div > div > div > div > div > div > h1")
+    const title = titleE.textContent.trim()
+
+    /** @type {HTMLAnchorElement} */
+    const authorE = document.querySelector("div.body dd > a")
+    const author = getAuthor(authorE)
+
+    const D = document.querySelectorAll("div.body > div:nth-of-type(2) > div > div > div > div:nth-of-type(1) > div")
+    const [tagsDiv, articleDiv, AllCommentsDiv] = D
+    const [titleDiv, bodyDiv, votersDiv] = articleDiv.children
+    const [bodyE, metaDiv] = bodyDiv.children
+    const commentDivs = AllCommentsDiv.children[1].children
+
+    replaceDivWithP(bodyE, document)
+    removeUselessStyle(bodyE)
+    const body = bodyE.innerHTML.trim()
+
+    const t = metaDiv.querySelector("em").textContent.trim()
+    const date = new Date(t)
+
+    const votersAs = votersDiv.querySelectorAll("a")
+    const voters = [...votersAs].map((voterA) => {
+        return getUserFromUserImgA(voterA)
+    })
+
+    const comments = [...commentDivs].map(x => {
+        return getArticleCommentsDetail(x)
+    })
+
+
+    return {
+        detail: {
+            title,
+            body,
+            author,
+            voters,
+            publishTime: date,
+            modifyTime: date
+        },
+        comments
+    }
+}
+
+/**
  * @param {Document} document  
  * @returns {(import("./typedef").QuestionSimplified)[]}
  */
@@ -310,6 +410,24 @@ const getQuestionData = (qid, document) => {
     }
 }
 
+/**
+ * @param {number} qid 
+ * @param {Document} document 
+ * @returns {Article}
+ */
+const getArticleData = (qid, document) => {
+    const { detail, comments } = getArticleDetailAndComments(document)
+
+    return {
+        type: "article",
+        id: qid,
+        tags: getTagsData(document),
+        relatedQuestions: getRelatedQuestions(document),
+        detail,
+        comments
+    }
+}
+
 
 /**
  * @param {number} qid 
@@ -322,10 +440,9 @@ const handler = async (qid) => {
 
     try {
 
-        removeBlankSpans(document)
+        removeBlankSpans(document.body)
 
-        // const data = backupType == "article" ? getArticleData(qid, document) : getQuestionData(qid, document)
-        const data = getQuestionData(qid, document)
+        const data = backupType == "article" ? getArticleData(qid, document) : getQuestionData(qid, document)
 
         await fs.ensureDir(outputPath)
         fs.writeJSON(`${outputPath}/${qid}.json`, data, { spaces: 4 })
@@ -340,6 +457,7 @@ const handler = async (qid) => {
 (async () => {
     // await handler(1883)
     // await handler(1)
+    // await handler(227)
 
     // 一次仅处理少量文件，防止内存溢出
     await getFewQidsAndThen(handler, baseFilePath, 20)
