@@ -10,11 +10,21 @@ const users = fs.readJsonSync(usersJsonFilePath)
 
 /**
  * @param {?(import("./typedef").UserObjLike)} u 
+ * @return {number}
  */
-const getUserAvatar = (u) => {
+const getUserID = (u) => {
     if (u) {
-        /** @type {number} */
-        const userID = u["user-id"] || u
+        return u["user-id"] || u
+    } else {
+        return null
+    }
+}
+
+/**
+ * @param {number} userID 
+ */
+const getUserAvatar = (userID) => {
+    if (userID) {
 
         const user = users.find(x => {
             return x["user-id"] == userID
@@ -44,12 +54,17 @@ const getAllQuestions = async (inputPath, qid) => {
     const { title, author, modifyTime } = detail
     const { views, concerns } = questionStatus
 
+    const userID = getUserID(author)
+    if (userID == 2765) {  // 过滤掉50cent的提问
+        return
+    }
+
     const date = moment(modifyTime).format("YYYY-MM-DD")
 
     return {
         id,
         title,
-        authorAvatar: getUserAvatar(author),
+        authorAvatar: getUserAvatar(userID),
         answersCount: answers.length,
         concerns: getNumberOrArrayLength(concerns),
         views,
@@ -67,12 +82,17 @@ const getAllArticles = async (inputPath, qid) => {
     const { id, detail, comments } = data
     const { title, author, voters, modifyTime } = detail
 
+    const userID = getUserID(author)
+    if (userID == 2765) {  // 过滤掉50cent发表的文章
+        return
+    }
+
     const date = moment(modifyTime).format("YYYY-MM-DD")
 
     return {
         id,
         title,
-        authorAvatar: getUserAvatar(author),
+        authorAvatar: getUserAvatar(userID),
         commentsCount: comments.length,
         voters: getNumberOrArrayLength(voters),
         date
@@ -89,9 +109,11 @@ backupTypes.forEach(async (backupType) => {
 
     // console.log(await handler(inputPath, 1))
 
-    const output = await Promise.all(
-        getAllQidsThen(inputPath, (qid) => handler(inputPath, qid))
-    )
+    const output = (
+        await Promise.all(
+            getAllQidsThen(inputPath, (qid) => handler(inputPath, qid))
+        )
+    ).filter(x => !!x)
 
     fs.writeJSON(`../../backups/${backupType}s.json`, output, { spaces: 4 })
 
