@@ -20,6 +20,6 @@
     "socks-proxy-agent": "^4.0.1"
   },
   "scripts": {
-    "dev": "http-server ../backups/ -c-1 -p 8080"
+    "dev": "http-server ../ -c-1 -p 8080"
   }
 }

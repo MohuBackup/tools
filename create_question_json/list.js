@@ -23,6 +23,20 @@ const getUserID = (u) => {
 /**
  * @param {number} userID 
  */
+const getUserName = (userID) => {
+    if (userID) {
+        const user = users.find(x => {
+            return x["user-id"] == userID
+        })
+        return user && user["user-name"]
+    } else {
+        return null
+    }
+}
+
+/**
+ * @param {number} userID 
+ */
 const getUserAvatar = (userID) => {
     if (userID) {
 
@@ -44,6 +58,31 @@ const getNumberOrArrayLength = (x) => {
 }
 
 /**
+ * 
+ * @param {import("./typedef").AnswerDetail[]} answers 
+ */
+const getLastAnswerDetail = (answers) => {
+
+    if (answers.length == 0) {
+        return null
+    }
+
+    const lastAnswer = answers.sort((a, b) => {
+        return new Date(b.modifyTime).getTime() - new Date(a.modifyTime).getTime()
+    })[0]
+
+    const lastAnswerPublishDate = moment(lastAnswer.modifyTime).format("YYYY-MM-DD")
+    const lastAnswerUserID = getUserID(lastAnswer.author)
+    const lastAnswerUserName = getUserName(lastAnswerUserID)
+
+    return {
+        authorUserID: lastAnswerUserID,
+        authorUserName: lastAnswerUserName,
+        publishDate: lastAnswerPublishDate
+    }
+}
+
+/**
  * @param {number} qid 
  */
 const getAllQuestions = async (inputPath, qid) => {
@@ -55,20 +94,24 @@ const getAllQuestions = async (inputPath, qid) => {
     const { views, concerns } = questionStatus
 
     const userID = getUserID(author)
+    const userName = getUserName(userID)
     if (userID == 2765) {  // 过滤掉50cent的提问
         return
     }
 
-    const date = moment(modifyTime).format("YYYY-MM-DD")
+    const publishDate = moment(modifyTime).format("YYYY-MM-DD")
 
     return {
         id,
         title,
+        authorUserID: userID,
+        authorUserName: userName,
         authorAvatar: getUserAvatar(userID),
         answersCount: answers.length,
+        lastAnswer: getLastAnswerDetail(answers),
         concerns: getNumberOrArrayLength(concerns),
         views,
-        date
+        publishDate
     }
 }
 
@@ -80,22 +123,25 @@ const getAllArticles = async (inputPath, qid) => {
     const data = await fs.readJson(`${inputPath}/${qid}.json`)
 
     const { id, detail, comments } = data
-    const { title, author, voters, modifyTime } = detail
+    const { title, author, voters, publishTime } = detail
 
     const userID = getUserID(author)
+    const userName = getUserName(userID)
     if (userID == 2765) {  // 过滤掉50cent发表的文章
         return
     }
 
-    const date = moment(modifyTime).format("YYYY-MM-DD")
+    const publishDate = moment(publishTime).format("YYYY-MM-DD")
 
     return {
         id,
         title,
+        authorUserID: userID,
+        authorUserName: userName,
         authorAvatar: getUserAvatar(userID),
         commentsCount: comments.length,
         voters: getNumberOrArrayLength(voters),
-        date
+        publishDate
     }
 
 }
@@ -115,8 +161,8 @@ backupTypes.forEach(async (backupType) => {
         )
     ).filter(x => !!x)
 
-    fs.writeJSON(`../../backups/${backupType}s.json`, output, { spaces: 4 })
+    fs.writeJSON(`../../backups/_data/${backupType}s.json`, output, { spaces: 4 })
 
-    console.log(output)
+    // console.log(output)
 
 })
