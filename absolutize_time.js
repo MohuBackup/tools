@@ -11,7 +11,7 @@ const { getAllQidsThen } = require("./util")
 
 const baseFilePath = "../archive.is/question"
 
-const r0 = />(\d+) (天|小时)前</g
+const r0 = />(\d+) (天|小时|分钟)前</g
 const r1 = new RegExp(`最新活动: <span class="aw-text-color-blue"${r0.source}`, "g")
 const r2 = new RegExp(`最新活动:(\r)?\n.+?${r0.source}`, "g")
 
@@ -47,10 +47,10 @@ const absolutizeTime = async (qid) => {
     /**
      * @param {string} match 
      * @param {string} n 
-     * @param { "天" | "小时" } unit_zh 
+     * @param { "天" | "小时" | "分钟" } unit_zh 
      */
     const replacer = (match, n, unit_zh) => {
-        const unit = unit_zh == "天" ? "days" : "hours"  // 翻译时间单位
+        const unit = unit_zh == "天" ? "days" : (unit_zh == "小时" ? "hours" : "minutes")  // 翻译时间单位
         const dateOnly = !match.includes("最新活动")
 
         const archiveTime = archiveTimeData[qid]
