@@ -2,7 +2,7 @@
 const fs = require("fs-extra")
 const { getAllQidsThen } = require("../util")
 
-const baseFilePath = "../../json/question/"
+const baseFilePath = "../../backups/question/"
 
 const allQids = getAllQidsThen(baseFilePath, (qid) => qid)
 const lastQid = allQids.slice(-1)[0]
