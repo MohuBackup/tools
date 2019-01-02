@@ -39,7 +39,7 @@ const download = async (page) => {
 
             return
         } else {
-            if (r.status != 404) console.error(saveTo + " " + r.status)
+            console.error(saveTo + " " + r.status)
             return
         }
     } catch (e) {

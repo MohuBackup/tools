@@ -29,7 +29,7 @@ const handler = async (qid) => {
 
 }
 
-fs.readJSONSync("./get_lost_pages/cached_lost_pages.json").forEach((p)=>{
+fs.readJSONSync("./get_lost_pages/cached_lost_pages.json").forEach((p) => {
     handler(p.qid)
 })
 
