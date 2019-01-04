@@ -3,8 +3,8 @@ const fs = require("fs-extra")
 const { fetch, getProxyAgent, readArrayFromJSON } = require("../util")
 
 const agent = getProxyAgent()
-const apiURL = "https://web.archive.org/save/https://2049bbs.xyz/t/"
-const jsonFilePath = "./data.json"
+const apiURL = "https://web.archive.org/save/https://2049bbs.xyz/member/"
+const jsonFilePath = "./members_reply.json"
 
 /**
  * 生成一个数列
@@ -26,7 +26,7 @@ const range = (start, end) => {
  * @returns {Promise<ArchivedItem>}
  */
 const archive = async (id) => {
-    const url = apiURL + id
+    const url = apiURL + id + "?act=reply"
 
     try {
         const r = await fetch(url, {
@@ -71,13 +71,16 @@ const archive = async (id) => {
 
 }
 
-const archiveAll = async () => {
+/**
+ * 存档指定范围内的所有页面到 web.archive.org
+ * @param {number} start (含)
+ * @param {number} end (含)
+ */
+const archiveAll = async (start, end) => {
 
     /** @type {ArchivedItem[]} */
     const savedData = await readArrayFromJSON(jsonFilePath)
 
-    const start = 1
-    const end = 885
     const n = 20
 
     // 绕过网站的并发限制
@@ -109,7 +112,7 @@ const retry = async () => {
     })
 
     const failedIdList = failed.map((x) => {
-        return +x.url.match(/(\d+)$/)[1]
+        return +x.url.match(apiURL + "(\\d+)")[1]
     })
 
     const n = 20
@@ -140,4 +143,4 @@ const retry = async () => {
 }
 
 
-retry()
+archiveAll(1, 1516)
