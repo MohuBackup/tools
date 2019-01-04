@@ -3,8 +3,8 @@ const fs = require("fs-extra")
 const { fetch, getProxyAgent, readArrayFromJSON } = require("../util")
 
 const agent = getProxyAgent()
-const apiURL = "https://web.archive.org/save/https://2049bbs.xyz/member/"
-const jsonFilePath = "./members_reply.json"
+const apiURL = "https://web.archive.org/save/https://2049bbs.xyz/n/"
+const jsonFilePath = "./topics.json"
 
 /**
  * 生成一个数列
@@ -26,7 +26,7 @@ const range = (start, end) => {
  * @returns {Promise<ArchivedItem>}
  */
 const archive = async (id) => {
-    const url = apiURL + id + "?act=reply"
+    const url = apiURL + id
 
     try {
         const r = await fetch(url, {
@@ -143,4 +143,4 @@ const retry = async () => {
 }
 
 
-archiveAll(1, 1516)
+archiveAll(1, 18)
