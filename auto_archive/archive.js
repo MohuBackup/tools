@@ -77,7 +77,7 @@ const archiveAll = async () => {
     const savedData = await readArrayFromJSON(jsonFilePath)
 
     const start = 1
-    const end = 882
+    const end = 885
     const n = 20
 
     // 绕过网站的并发限制
@@ -126,11 +126,9 @@ const retry = async () => {
         )
 
         data.forEach((x, index) => {
-            const { url } = failed[index]
+            const d = failed[index]
 
-            const savedDataIndex = savedData.findIndex((d) => {
-                return d.url == url
-            })
+            const savedDataIndex = savedData.indexOf(d)
 
             savedData[savedDataIndex] = x
         })
