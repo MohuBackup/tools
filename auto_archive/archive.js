@@ -17,10 +17,15 @@ const range = (start, end) => {
 
 /**
  * @typedef {{ url: string; code: number; archiveTime?: string; length?: number; }} ArchivedItem 
+ */
+
+
+/**
+ * 存档页面到 web.archive.org
  * @param {number} id 
  * @returns {Promise<ArchivedItem>}
  */
-const save = async (id) => {
+const archive = async (id) => {
     const url = apiURL + id
 
     try {
@@ -66,7 +71,7 @@ const save = async (id) => {
 
 }
 
-const saveAll = async () => {
+const archiveAll = async () => {
 
     /** @type {ArchivedItem[]} */
     const savedData = await readArrayFromJSON(jsonFilePath)
@@ -82,7 +87,7 @@ const saveAll = async () => {
 
         const data = await Promise.all(
             idList.map((id) => {
-                return save(id)
+                return archive(id)
             })
         )
 
@@ -94,5 +99,47 @@ const saveAll = async () => {
 
 }
 
+const retry = async () => {
 
-saveAll()
+    /** @type {ArchivedItem[]} */
+    const savedData = await readArrayFromJSON(jsonFilePath)
+
+    const failed = savedData.filter((x) => {
+        return x.code == 500
+    })
+
+    const failedIdList = failed.map((x) => {
+        return +x.url.match(/(\d+)$/)[1]
+    })
+
+    const n = 20
+
+    // 绕过网站的并发限制
+    for (let i = 0; i <= failedIdList.length; i = i + n) {
+
+        const idList = failedIdList.slice(i, i + n)
+
+        const data = await Promise.all(
+            idList.map((id) => {
+                return archive(id)
+            })
+        )
+
+        data.forEach((x, index) => {
+            const { url } = failed[index]
+
+            const savedDataIndex = savedData.findIndex((d) => {
+                return d.url == url
+            })
+
+            savedData[savedDataIndex] = x
+        })
+
+        await fs.writeJSON(jsonFilePath, savedData, { spaces: 4 })
+
+    }
+
+}
+
+
+retry()
