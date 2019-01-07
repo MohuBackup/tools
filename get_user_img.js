@@ -6,7 +6,7 @@ const { fetch, getProxyAgent } = require("./util")
 const agent = getProxyAgent()
 
 const baseFilePath = "../"
-const jsonFilePath = "../backups/uploads3.json"
+const jsonFilePath = "../backups/uploads4.json"
 const baseURL = ""
 
 
