@@ -9,7 +9,7 @@ const baseFileName = `../backups/${backupType}/`
 const matomoScript = /<script type="text\/javascript">\s+var _paq = _paq(.|\n|\s)+?<\/script>/g
 const crondScriptDiv = /<div style="display:none;" id="__crond">(.|\n|\s)+?<\/div>/g
 const UrlBaseElement = /<base.+?-->/g
-const archiveURL0 = /(\/im_\/)?https:\/\/.*?www.mohu.club(\/)?/g
+const archiveURL0 = /(\/im_\/)?https:\/\/.*?(www\.)?mohu\.(club|ml)(\/)?/g
 const archiveURL1 = /https:([\w./:]+?(http(s)?))+/g
 
 
@@ -29,7 +29,5 @@ const handler = async (qid) => {
 
 }
 
-fs.readJSONSync("./get_lost_pages/cached_lost_pages.json").forEach((p) => {
-    handler(p.qid)
-})
+handler(940)
 
