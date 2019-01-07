@@ -1,12 +1,12 @@
 // @ts-check
 const fs = require("fs-extra")
 const path = require("path")
-const { pad2, fetch, getProxyAgent } = require("./util")
+const { fetch, getProxyAgent } = require("./util")
 
 const agent = getProxyAgent()
 
-const baseFilePath = "../backups/"
-const jsonFilePath = "../backups/uploads_formatted.json"
+const baseFilePath = "../"
+const jsonFilePath = "../backups/uploads2.json"
 const baseURL = ""
 
 
